@@ -6,10 +6,19 @@ public final class Utilities {
 
         /*
         Permette di restituire l'upperCase di una stringa, gestendo il caso anche in cui essa sia nulla.
+
+        +++L'uppercase ci server per garantire il caseInsesitive nelle query.+++
+
+        +++Se Containing è true allora str in input sarà formattata in modo tale da
+        essere compatibile con Query che verificano che la str sia contenuta in un'altra str e non che sia esattamente
+        uguale ad essa.+++
          */
-        public static String upperCase(String str) {
-            if (str == null) {
+        public static String upperCase(String str, boolean Containing) {
+            if (str == null || str.isEmpty()) {
                 return null;
+            }
+            if(Containing && !str.isBlank()){
+                return "%"+str.toUpperCase()+"%";
             }
             return str.toUpperCase();
         }

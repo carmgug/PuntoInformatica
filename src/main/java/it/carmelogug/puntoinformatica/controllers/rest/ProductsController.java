@@ -8,6 +8,7 @@ import it.carmelogug.puntoinformatica.support.ResponseMessage;
 import it.carmelogug.puntoinformatica.support.exceptions.ProductAlreadyExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.json.JsonParseException;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -74,6 +75,8 @@ public class ProductsController {
         return sb.toString();
     }
 
+
+
     @GetMapping("/getAll")
     public ResponseEntity getAll(){
         List<Product> result= productService.showAllProducts();
@@ -81,6 +84,44 @@ public class ProductsController {
             return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
+    }
+
+
+    /*
+        name: può essere null, se vuoto viene contato come null, se ha solo spazi non restituirà i nomi dei prodotti contenenti spazi
+        type: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un type non esistente
+        category: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un category non esistente.
+     */
+    @GetMapping("/search/by_name_type_category")
+    public ResponseEntity getByName(@RequestParam(required = false) String name,
+                                    @RequestParam(required = false) Product.Type type,
+                                    @RequestParam(required = false) Product.Category category){
+        List<Product> result= productService.showProductsByNameAndTypeAndCategory(name,type,category);
+        if(result.size()<=0){
+            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(result,HttpStatus.OK);
+    }
+
+    /*
+        Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per la ricerca di un prodotto
+        Restituisce il tipo aspettato, il valore trasmesso, e i valori possibili.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ConversionFailedException.class)
+    public String handleConversionFailedException(ConversionFailedException ex) {
+        StringBuilder sb=new StringBuilder();
+        sb.append("Expected type: " + ex.getTargetType().getType().getSimpleName()+"\n");
+        sb.append("Provided value: " + ex.getValue()+"\n");
+        sb.append("Expected values: [");
+        for(Object f:ex.getTargetType().getType().getEnumConstants()){
+            sb.append(f.toString()+" ");
+        }
+        sb.append("]\n");
+        String msg=sb.toString();
+
+        return msg;
+
     }
 
 

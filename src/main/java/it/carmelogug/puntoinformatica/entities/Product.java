@@ -48,7 +48,7 @@ public class Product {
 
     @Basic
     @NotNull(message = "barCode may not be null!")
-    @Column(name="bar_code",nullable = false,unique = true)
+    @Column(name="bar_code",nullable = false)
     private Long barCode;
 
     /*
@@ -76,14 +76,6 @@ public class Product {
     @ToString.Exclude
     @JsonIgnore
     private Set<StoredProduct> storedProducts;
-
-
-
-
-
-
-
-
 
 
     public enum Type{
