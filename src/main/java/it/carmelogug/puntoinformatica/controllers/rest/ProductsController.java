@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import it.carmelogug.puntoinformatica.entities.Product;
 import it.carmelogug.puntoinformatica.services.ProductService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
-import it.carmelogug.puntoinformatica.support.exceptions.ProductAlreadyExistException;
+import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductAlreadyExistException;
+import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.json.JsonParseException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,20 @@ public class ProductsController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product already exist!",e);
         }
         return new ResponseEntity(new ResponseMessage("Added successful!"),HttpStatus.OK);
+    }
+
+
+    //TODO Gestire le transazioni nel database tramite l'entity manager nel caso delle eliminazioni.
+    @DeleteMapping
+    public ResponseEntity delete(@RequestParam(required = true) long barCode,
+                                    @RequestParam(required = true) Product.Type type,
+                                    @RequestParam(required = true) Product.Category category){
+        try {
+            productService.removeProduct(barCode, type, category);
+        }catch (ProductNotExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!", e);
+        }
+        return new ResponseEntity<>(new ResponseMessage("Product has been deleted"),HttpStatus.OK);
     }
 
 
@@ -93,7 +106,7 @@ public class ProductsController {
         category: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un category non esistente.
      */
     @GetMapping("/search/by_name_type_category")
-    public ResponseEntity getByName(@RequestParam(required = false) String name,
+    public ResponseEntity getByNameAndTypeAndCategory(@RequestParam(required = false) String name,
                                     @RequestParam(required = false) Product.Type type,
                                     @RequestParam(required = false) Product.Category category){
         List<Product> result= productService.showProductsByNameAndTypeAndCategory(name,type,category);
@@ -104,9 +117,10 @@ public class ProductsController {
     }
 
     /*
-        Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per la ricerca di un prodotto
+        Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per la ricerca/eliminazione di un prodotto
         Restituisce il tipo aspettato, il valore trasmesso, e i valori possibili.
      */
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConversionFailedException.class)
     public String handleConversionFailedException(ConversionFailedException ex) {

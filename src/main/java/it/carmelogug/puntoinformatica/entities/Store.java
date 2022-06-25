@@ -2,6 +2,9 @@ package it.carmelogug.puntoinformatica.entities;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
@@ -10,6 +13,10 @@ import java.util.List;
 
 @Entity
 @Table( name="Stores", schema="punto_informatica")
+@ToString
+@EqualsAndHashCode
+@Getter
+@Setter
 public class Store {
 
     @Id
@@ -49,7 +56,7 @@ public class Store {
 
     @Basic
     @Column(name="postal_code",nullable = true)
-    private long postalCode;
+    private Long postalCode;
 
 
 
@@ -61,13 +68,5 @@ public class Store {
     @ToString.Exclude
     @OneToMany(mappedBy = "store",cascade = CascadeType.MERGE,orphanRemoval = true)
     private List<StoredProduct> storedProducts;
-
-
-
-
-
-
-
-
 
 }

@@ -1,4 +1,4 @@
-package it.carmelogug.puntoinformatica.support.exceptions;
+package it.carmelogug.puntoinformatica.support.exceptions.Product;
 
 public class ProductAlreadyExistException extends Exception{
 
