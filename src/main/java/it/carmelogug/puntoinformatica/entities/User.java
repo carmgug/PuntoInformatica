@@ -35,8 +35,9 @@ public class User {
     @Column(name="last_name",nullable = false)
     private String lastName;
 
-    @NotBlank(message = "Email may not be blank!")
+
     @Basic
+    @NotBlank(message = "Email may not be blank!")
     @Column(name="email",nullable = true)
     private String email;
 
