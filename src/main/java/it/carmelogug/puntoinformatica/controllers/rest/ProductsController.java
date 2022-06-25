@@ -52,7 +52,6 @@ public class ProductsController {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        System.out.println("Errore");
         return errors;
     }
 
