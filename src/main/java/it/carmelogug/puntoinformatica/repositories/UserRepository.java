@@ -1,12 +1,11 @@
 package it.carmelogug.puntoinformatica.repositories;
 
-
-import it.carmelogug.puntoinformatica.controllers.rest.StoredProduct;
+import it.carmelogug.puntoinformatica.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface StoredProductRepository extends JpaRepository<StoredProduct,Integer> {
+public interface UserRepository extends JpaRepository<User, Integer> {
 
 
 

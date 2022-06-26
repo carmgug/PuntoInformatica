@@ -18,7 +18,7 @@ import javax.validation.constraints.PositiveOrZero;
 @EqualsAndHashCode
 @ToString
 @Entity
-@Table(name = "stored_products", schema = "punto_informatica")
+@Table(name = "stored_product", schema = "punto_informatica")
 public class StoredProduct {
 
     /*
