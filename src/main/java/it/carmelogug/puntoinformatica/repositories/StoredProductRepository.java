@@ -1,7 +1,10 @@
 package it.carmelogug.puntoinformatica.repositories;
 
 
-import it.carmelogug.puntoinformatica.controllers.rest.StoredProduct;
+
+import it.carmelogug.puntoinformatica.entities.Product;
+import it.carmelogug.puntoinformatica.entities.Store;
+import it.carmelogug.puntoinformatica.entities.StoredProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,6 +12,5 @@ import org.springframework.stereotype.Repository;
 public interface StoredProductRepository extends JpaRepository<StoredProduct,Integer> {
 
 
-
-
+    boolean existsByStoreAndProduct(Store store, Product product);
 }

@@ -13,12 +13,13 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
-@Getter
-@Setter
+
 @EqualsAndHashCode
 @ToString
 @Entity
-@Table(name = "stored_product", schema = "punto_informatica")
+@Table(name = "stored_products", schema = "punto_informatica")
+@Getter
+@Setter
 public class StoredProduct {
 
     /*

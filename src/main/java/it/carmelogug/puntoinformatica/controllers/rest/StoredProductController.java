@@ -1,7 +1,7 @@
 package it.carmelogug.puntoinformatica.controllers.rest;
 
 
-import it.carmelogug.puntoinformatica.entities.Product;
+import it.carmelogug.puntoinformatica.entities.StoredProduct;
 import it.carmelogug.puntoinformatica.services.StoredProductService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/storedProducts")
-public class StoredProduct {
+public class StoredProductController {
 
     @Autowired
     private StoredProductService storedProductService;
@@ -62,7 +62,7 @@ public class StoredProduct {
 
     @GetMapping("/getAll")
     public ResponseEntity getAll(){
-        List<Product> result= storedProductService.showAllProducts();
+        List<StoredProduct> result= storedProductService.showAllStoredProducts();
         if(result.size()==0){
             return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
         }

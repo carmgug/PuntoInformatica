@@ -46,7 +46,7 @@ public class Store {
 
     @Basic
     @NotBlank(message = "Province may not be blank")
-    @Column(name="province",length = 50)
+    @Column(name="province",length = 5)
     private String province;
 
     @Basic
