@@ -1,6 +1,8 @@
 package it.carmelogug.puntoinformatica.support;
 
 import it.carmelogug.puntoinformatica.entities.Product;
+import it.carmelogug.puntoinformatica.entities.Store;
+
 
 public final class Utilities {
 
@@ -22,6 +24,8 @@ public final class Utilities {
             }
             return str.toUpperCase();
         }
+
+
 
         public static Product.Type convertStringToType(String type){
             if(type == null){
@@ -57,6 +61,14 @@ public final class Utilities {
             default:
                 return null;
         }
+    }
+
+    public static void adjustPropreties(Store store){
+        store.setCountry(Utilities.upperCase(store.getCountry(),false));
+        store.setRegion(Utilities.upperCase(store.getRegion(),false));
+        store.setCity(Utilities.upperCase(store.getCity(),false));
+        store.setProvince(Utilities.upperCase(store.getProvince(),false));
+        store.setAddress(Utilities.upperCase(store.getAddress(),false));
     }
 
 

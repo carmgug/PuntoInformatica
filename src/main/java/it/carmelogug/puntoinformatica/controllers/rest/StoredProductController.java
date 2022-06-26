@@ -1,6 +1,8 @@
+
+
 package it.carmelogug.puntoinformatica.controllers.rest;
 
-
+/*
 import it.carmelogug.puntoinformatica.entities.StoredProduct;
 import it.carmelogug.puntoinformatica.services.StoredProductService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
@@ -48,6 +50,7 @@ public class StoredProductController {
         Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
         Restituisce i campi della classe e il messaggio di errore associato.
      */
+/*
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -72,3 +75,5 @@ public class StoredProductController {
 
 
 }
+
+*/

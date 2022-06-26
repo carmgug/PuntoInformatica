@@ -13,6 +13,10 @@ public interface StoreRepository extends JpaRepository<Store,Integer> {
 
     Store findStoreById(int storeID);
 
+    Store findByCountryAndRegionAndCityAndProvinceAndAddress(
+            String country,String region,
+            String city,String province,String address);
+
     @Query("SELECT s " +
             "FROM Store as s " +
             "WHERE (upper(s.country) LIKE :country OR :country IS NULL ) AND " +

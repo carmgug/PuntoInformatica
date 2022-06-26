@@ -21,18 +21,20 @@ public class ProductService {
         Metodi per l'aggiunta e l'eleminazione dei prodotti
      */
     @Transactional(readOnly = false)
-    public void addProduct(Product product) throws ProductAlreadyExistException {
+    public Product addProduct(Product product) throws ProductAlreadyExistException {
         if (productRepository.existsByBarCodeAndTypeAndCategory(product.getBarCode(),product.getType(),product.getCategory())){
             throw new ProductAlreadyExistException();
         }
-        productRepository.save(product);
+        Product result=productRepository.save(product);
+        return result;
     }
 
     @Transactional(readOnly = false)
-    public void removeProduct(long barCode,Product.Type type,Product.Category category) throws ProductNotExistException{
+    public Product removeProduct(long barCode,Product.Type type,Product.Category category) throws ProductNotExistException{
         Product p = productRepository.getProductByBarCodeAndTypeAndCategory(barCode, type, category);
         if(p==null) throw new ProductNotExistException();
         productRepository.delete(p);
+        return p; //ritorno l'oggetto rimosso
 
     }
 

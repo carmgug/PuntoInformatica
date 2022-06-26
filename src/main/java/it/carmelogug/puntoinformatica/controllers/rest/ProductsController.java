@@ -30,12 +30,13 @@ public class ProductsController {
 
     @PostMapping
     public ResponseEntity create(@RequestBody @Valid Product product){
+        Product p;
         try{
-            productService.addProduct(product);
+            p=productService.addProduct(product);
         } catch (ProductAlreadyExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product already exist!",e);
         }
-        return new ResponseEntity(new ResponseMessage("Added successful!"),HttpStatus.OK);
+        return new ResponseEntity(new ResponseMessage("Added successful!",p),HttpStatus.OK);
     }
 
 
@@ -44,12 +45,14 @@ public class ProductsController {
     public ResponseEntity delete(@RequestParam(required = true) long barCode,
                                     @RequestParam(required = true) Product.Type type,
                                     @RequestParam(required = true) Product.Category category){
+
+        Product p;
         try {
-            productService.removeProduct(barCode, type, category);
+            p=productService.removeProduct(barCode, type, category);
         }catch (ProductNotExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!", e);
         }
-        return new ResponseEntity<>(new ResponseMessage("Product has been deleted"),HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseMessage("Product has been deleted",p),HttpStatus.OK);
     }
 
 
@@ -111,7 +114,7 @@ public class ProductsController {
                                     @RequestParam(required = false) Product.Category category){
         List<Product> result= productService.showProductsByNameAndTypeAndCategory(name,type,category);
         if(result.size()<=0){
-            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseMessage("No result!", null),HttpStatus.OK);
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
     }

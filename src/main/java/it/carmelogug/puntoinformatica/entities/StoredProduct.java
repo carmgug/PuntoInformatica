@@ -6,7 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
+
+
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -14,12 +15,12 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 
+@Getter
+@Setter
 @EqualsAndHashCode
 @ToString
 @Entity
 @Table(name = "stored_products", schema = "punto_informatica")
-@Getter
-@Setter
 public class StoredProduct {
 
     /*
@@ -29,8 +30,12 @@ public class StoredProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id",nullable = false)
-    private int id;
+    private Integer id;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    @JsonIgnore
+    private long version;
 
 
     @Basic
