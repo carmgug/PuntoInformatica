@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import it.carmelogug.puntoinformatica.entities.Product;
 import it.carmelogug.puntoinformatica.services.ProductService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
+import it.carmelogug.puntoinformatica.support.Utilities;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +113,8 @@ public class ProductsController {
     public ResponseEntity getByNameAndTypeAndCategory(@RequestParam(required = false) String name,
                                     @RequestParam(required = false) Product.Type type,
                                     @RequestParam(required = false) Product.Category category){
+
+        name= Utilities.upperCase(name,true);
         List<Product> result= productService.showProductsByNameAndTypeAndCategory(name,type,category);
         if(result.size()<=0){
             return new ResponseEntity<>(new ResponseMessage("No result!", null),HttpStatus.OK);

@@ -1,10 +1,12 @@
 package it.carmelogug.puntoinformatica.controllers.rest;
 
 
+import it.carmelogug.puntoinformatica.entities.Product;
 import it.carmelogug.puntoinformatica.entities.Store;
 import it.carmelogug.puntoinformatica.entities.StoredProduct;
 import it.carmelogug.puntoinformatica.services.StoreService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
+import it.carmelogug.puntoinformatica.support.Utilities;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
@@ -165,6 +167,24 @@ public class StoreController {
 
 
         return new ResponseEntity(new ResponseMessage("Product price has been modifided!",updatedProduct),HttpStatus.OK);
+    }
+
+    @GetMapping("/storedProducts/search/getByvarParams")
+    public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
+            @RequestBody Store store,
+            @RequestParam(required = false) String name,@RequestParam(required = false) Product.Type type, Product.Category category,
+            @RequestParam(required = false) Double price, @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable){
+
+        name=Utilities.upperCase(name,true);
+        List<StoredProduct> result=storeService.showSearchByStoreAndProductAndPriceAndQuantity(
+                store,
+                name,type,category, //info sul prodotto
+                price,(onlyAvailable) ? 0 :  null //info sullo store product
+        );
+        if(result.size()==0){
+            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
 

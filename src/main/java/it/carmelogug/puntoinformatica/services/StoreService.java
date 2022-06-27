@@ -26,6 +26,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.validation.Valid;
 
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -61,11 +62,6 @@ public class StoreService {
         return store;
     }
 
-    /*
-        Metodo privato per effettuare una formattazione dei campi dello store
-     */
-
-
     @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Store removeStore(Store store) throws StoreNotExistException {
         Store s=storeRepository.findStoreById(store.getId());
@@ -73,7 +69,6 @@ public class StoreService {
         storeRepository.delete(s);
         return s;
     }
-
 
     @Transactional(readOnly = true)
     public List<Store> showAllStores(){
@@ -101,8 +96,8 @@ public class StoreService {
 
 
     /*
-        Metodi per la gestione dei prodotti venduti in uno store.
-     */
+        +++Methods for managing stored products+++
+    */
     @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     public StoredProduct addStoredProduct(StoredProduct storedProduct) throws ProductNotExistException, StoreNotExistException, StoredProductAlreadyExistException {
         //Verifichiamo che il product esista
@@ -115,17 +110,15 @@ public class StoreService {
 
         storedProduct=storedProductRepository.save(storedProduct);
         return storedProduct;
-    }
+    }//addStoredProduct
 
     private boolean existProduct(StoredProduct storedProduct){
         Product product=storedProduct.getProduct();
-
 
         //se mi è stato fornito l'id in input utilizzo quello per verificare l'esistenza del prodotto.
         if(product.getId()!=null && productRepository.existsById(product.getId()) ){
             return true;
         }
-
         //se non mi è stato fornito l'id e se la ricerca precedente ha fallito allora effettuo la ricerca
         //per barCode tipo e categoria
         else if (product.getBarCode()!=null && product.getType()!= null && product.getCategory()!=null){
@@ -136,10 +129,9 @@ public class StoreService {
             }
             return false;
         }
-
         //se non mi è stato passato nessuno dei parametri precedenti allora restituisco false
         return false;
-    }
+    }//existProduct
 
     private boolean existStore( StoredProduct storedProduct){
         Store store=storedProduct.getStore();
@@ -162,7 +154,15 @@ public class StoreService {
             return false;
         }
         return false;
-    }
+    }//existStore
+
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW)
+    public StoredProduct removeStoredProduct(StoredProduct storedProduct) throws StoredProductNotExistException{
+        storedProduct=storedProductRepository.findStoredProductById(storedProduct.getId());
+        if(storedProduct==null) throw new StoredProductNotExistException();
+        storedProductRepository.delete(storedProduct);
+        return storedProduct;
+    }//removeStoredProduct
 
 
     /*
@@ -193,5 +193,26 @@ public class StoreService {
 
         return storedProduct;
     }
+
+
+    /*
+        Nel sito finale prima di poter acquistare i prodotti, si deve selezionare prima lo store, quindi si conosce.
+     */
+    @Transactional(readOnly = true)
+    public List<StoredProduct> showSearchByStoreAndProductAndPriceAndQuantity(
+            Store store,
+            String name,Product.Type type, Product.Category category,
+            Double price,Integer quantity
+    ){
+        List<StoredProduct> result=new LinkedList<>();
+        List<Product> products= productRepository.advSearchByNameAndTypeAndCategory(name,type,category);
+        System.out.println(products.size());
+        for(Product p: products){
+            result.addAll(storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,p,price,quantity));
+        }
+        return result;
+    }
+
+
 
 }

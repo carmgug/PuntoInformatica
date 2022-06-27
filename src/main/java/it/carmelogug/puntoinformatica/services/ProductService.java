@@ -58,7 +58,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> showProductsByNameAndTypeAndCategory(String name,Product.Type type,Product.Category category){
-        name= Utilities.upperCase(name,true);
+
         return productRepository.advSearchByNameAndTypeAndCategory(name,type,category);
     }
 

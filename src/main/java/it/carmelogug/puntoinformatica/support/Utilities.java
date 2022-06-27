@@ -6,7 +6,7 @@ import it.carmelogug.puntoinformatica.entities.Store;
 
 public final class Utilities {
 
-        /*
+    /*
         Permette di restituire l'upperCase di una stringa, gestendo il caso anche in cui essa sia nulla.
 
         +++L'uppercase ci server per garantire il caseInsesitive nelle query.+++
@@ -14,8 +14,8 @@ public final class Utilities {
         +++Se Containing è true allora str in input sarà formattata in modo tale da
         essere compatibile con Query che verificano che la str sia contenuta in un'altra str e non che sia esattamente
         uguale ad essa.+++
-         */
-        public static String upperCase(String str, boolean Containing) {
+    */
+    public static String upperCase(String str, boolean Containing) {
             if (str == null || str.isEmpty()) {
                 return null;
             }
@@ -23,11 +23,13 @@ public final class Utilities {
                 return "%"+str.toUpperCase()+"%";
             }
             return str.toUpperCase();
-        }
+        }//upperCase
 
 
-
-        public static Product.Type convertStringToType(String type){
+    /*
+        Metodo utili per i product
+     */
+    public static Product.Type convertStringToType(String type){
             if(type == null){
                 return null;
             }
@@ -39,7 +41,7 @@ public final class Utilities {
                 default:
                     return null;
             }
-        }
+        }//convertStringToType
 
     public static Product.Category convertStringToCategory(String category){
         if(category == null){
@@ -61,8 +63,12 @@ public final class Utilities {
             default:
                 return null;
         }
-    }
+    }//convertStringToCategory
 
+
+    /*
+        Metodi utili per lo store
+     */
     public static void adjustPropreties(Store store){
         store.setCountry(Utilities.upperCase(store.getCountry(),false));
         store.setRegion(Utilities.upperCase(store.getRegion(),false));
