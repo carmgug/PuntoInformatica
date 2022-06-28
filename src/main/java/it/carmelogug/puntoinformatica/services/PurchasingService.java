@@ -20,23 +20,23 @@ import javax.persistence.PersistenceContext;
 @Service
 public class PurchasingService {
 
+
+
     @Autowired
     PurchaseRepository purchaseRepository;
 
     @Autowired
     ProductInPurchaseRepository productInPurchaseRepository;
 
+
+
     @PersistenceContext
     EntityManager entityManager;
 
 
-    /*
-        merge:
-            Find an attached object with the same id and update it.
-            If exists update and return the already attached object.
-            If doesn't exist insert the new register to the database.
-     */
-    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW)
+
+
+    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
     public Purchase addPurchase(Purchase purchase) throws QuantityProductUnvailableException, StoredProductNotExistException {
         Purchase res=purchaseRepository.save(purchase);
         double totalPrice=0;
@@ -56,12 +56,13 @@ public class PurchasingService {
                 );
             }
             storedProduct.setQuantity(newQuantity);
-            entityManager.merge(storedProduct);//update
-            entityManager.lock(storedProduct,LockModeType.NONE); //release the lock
+            //entityManager.merge(storedProduct); update
+            //entityManager.lock(storedProduct,LockModeType.NONE); release the lock, non necessario.
             pip.setPrice(pip.getQuantity()* storedProduct.getPrice());
             pip.setStoredProduct(storedProduct);
             pip.setPurchase(res);
-            pip=entityManager.merge(pip); //insert record in database.
+            productInPurchaseRepository.save(pip);//insert record in database
+            //pip=entityManager.merge(pip); insert record in database.
 
             totalPrice+= pip.getPrice();
         }

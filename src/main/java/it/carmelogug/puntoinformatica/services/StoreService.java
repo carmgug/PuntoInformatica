@@ -43,9 +43,7 @@ public class StoreService {
     private ProductRepository productRepository;
 
 
-    /*
-        The persistence context contains entity instances and used to manage the entity instances life cycle.
-     */
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -165,9 +163,7 @@ public class StoreService {
     }//removeStoredProduct
 
 
-    /*
-        https://www.baeldung.com/jpa-optimistic-locking Per capire le lock.
-     */
+
     @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public StoredProduct updateQuantityStoredProduct(StoredProduct storedProduct,Integer quantity) throws StoredProductNotExistException {
 
@@ -203,13 +199,7 @@ public class StoreService {
 
 
 
-    //Per gestire le impaginazioni
-    //PageImpl(List<T> content, Pageable pageable, long total)
-    //where
-    //
-    //content – the content of this page(Your collection object).
-    //pageable – the paging information
-    //total – the total amount of items available.
+
     @Transactional(readOnly = true)
     public List<StoredProduct> showStoredProductsByStoreAndProductAndPriceAndQuantity(
             Store store,
