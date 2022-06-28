@@ -3,13 +3,14 @@ package it.carmelogug.puntoinformatica.services;
 
 import it.carmelogug.puntoinformatica.entities.Product;
 import it.carmelogug.puntoinformatica.repositories.ProductRepository;
-import it.carmelogug.puntoinformatica.support.Utilities;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 @Service
@@ -58,7 +59,6 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<Product> showProductsByNameAndTypeAndCategory(String name,Product.Type type,Product.Category category){
-
         return productRepository.advSearchByNameAndTypeAndCategory(name,type,category);
     }
 

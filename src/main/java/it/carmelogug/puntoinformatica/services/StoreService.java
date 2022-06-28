@@ -14,7 +14,7 @@ import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExist
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductNotExistException;
-import lombok.experimental.UtilityClass;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
-import javax.validation.Valid;
+
 
 import java.util.LinkedList;
 import java.util.List;
@@ -195,23 +195,35 @@ public class StoreService {
     }
 
 
-    /*
-        Nel sito finale prima di poter acquistare i prodotti, si deve selezionare prima lo store, quindi si conosce.
-     */
     @Transactional(readOnly = true)
-    public List<StoredProduct> showSearchByStoreAndProductAndPriceAndQuantity(
+    public List<StoredProduct> showStoredProductsByStore(Store store){
+        store=storeRepository.findStoreById(store.getId());
+        return store.getStoredProducts();
+    }
+
+
+
+    //Per gestire le impaginazioni
+    //PageImpl(List<T> content, Pageable pageable, long total)
+    //where
+    //
+    //content – the content of this page(Your collection object).
+    //pageable – the paging information
+    //total – the total amount of items available.
+    @Transactional(readOnly = true)
+    public List<StoredProduct> showStoredProductsByStoreAndProductAndPriceAndQuantity(
             Store store,
             String name,Product.Type type, Product.Category category,
             Double price,Integer quantity
     ){
-        List<StoredProduct> result=new LinkedList<>();
+        List<StoredProduct> result= new LinkedList<StoredProduct>();
         List<Product> products= productRepository.advSearchByNameAndTypeAndCategory(name,type,category);
-        System.out.println(products.size());
         for(Product p: products){
             result.addAll(storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,p,price,quantity));
         }
+
         return result;
-    }
+    }//showSearchByStoreAndProductAndPriceAndQuantity
 
 
 

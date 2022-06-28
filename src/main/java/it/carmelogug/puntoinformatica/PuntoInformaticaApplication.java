@@ -8,6 +8,7 @@ public class PuntoInformaticaApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PuntoInformaticaApplication.class, args);
+
     }
 
 }

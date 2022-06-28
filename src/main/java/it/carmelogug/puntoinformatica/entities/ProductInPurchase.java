@@ -1,10 +1,15 @@
 package it.carmelogug.puntoinformatica.entities;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
 @Entity
+@Getter
+@Setter
 @Table(name = "ProductsInPurchase", schema = "punto_informatica")
 public class ProductInPurchase {
     @Id
@@ -15,6 +20,10 @@ public class ProductInPurchase {
     @Basic
     @Column(name = "quantity", nullable = true)
     private int quantity;
+
+    @Basic
+    @Column(name = "price",nullable = true)
+    private double price;
 
     @ManyToOne
     @JoinColumn(name = "related_purchase")

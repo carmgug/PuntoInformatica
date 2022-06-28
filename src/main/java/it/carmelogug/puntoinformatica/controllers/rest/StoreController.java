@@ -176,7 +176,7 @@ public class StoreController {
             @RequestParam(required = false) Double price, @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable){
 
         name=Utilities.upperCase(name,true);
-        List<StoredProduct> result=storeService.showSearchByStoreAndProductAndPriceAndQuantity(
+        List<StoredProduct> result=storeService.showStoredProductsByStoreAndProductAndPriceAndQuantity(
                 store,
                 name,type,category, //info sul prodotto
                 price,(onlyAvailable) ? 0 :  null //info sullo store product

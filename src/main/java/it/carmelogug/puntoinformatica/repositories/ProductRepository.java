@@ -17,12 +17,12 @@ public interface ProductRepository extends JpaRepository<Product,Integer> {
     Product getProductByBarCodeAndTypeAndCategory(long barCode,Product.Type type,Product.Category category);
 
 
-    @Query("SELECT p " +
+    @Query(value="SELECT p " +
             "FROM Product as p " +
             "WHERE (upper(p.name) LIKE :name OR :name IS NULL ) AND " +
             "       (p.type = :type OR :type IS NULL ) AND " +
             "       (p.category = :category OR :category IS NULL )")
-    List<Product> advSearchByNameAndTypeAndCategory(String name,Product.Type type,Product.Category category);
+    List<Product> advSearchByNameAndTypeAndCategory(String name, Product.Type type, Product.Category category);
 
     /*
         La query sopra riassume le seguenti.
