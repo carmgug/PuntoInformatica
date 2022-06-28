@@ -26,6 +26,6 @@ public interface StoredProductRepository extends JpaRepository<StoredProduct,Int
             "WHERE  (sp.store = :store ) AND " +
             "       (sp.product = :p) AND " +
             "       (sp.price <= :price OR :price IS NULL ) AND " +
-            "       (sp.quantity > :quantity OR :quantity IS NULL)")
+            "       (sp.quantity > :quantity OR :quantity IS NULL )")
     List<StoredProduct> advSearchByStoreAndProductAndPriceAndQuantity(Store store, Product p, Double price, Integer quantity);
 }

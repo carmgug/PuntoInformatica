@@ -1,6 +1,7 @@
 package it.carmelogug.puntoinformatica.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 @Entity
 @Table(name= "Users",schema = "punto_informatica")
@@ -44,6 +46,10 @@ public class User {
     @Basic
     @Column(name="phone_number")
     private String phoneNumber;
+
+    @OneToMany(mappedBy = "buyer", cascade = CascadeType.MERGE)
+    @JsonIgnore
+    private List<Purchase> purchases;
 
 
 
