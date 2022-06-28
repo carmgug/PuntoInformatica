@@ -56,13 +56,11 @@ public class PurchasingService {
                 );
             }
             storedProduct.setQuantity(newQuantity);
-            //entityManager.merge(storedProduct); update
-            //entityManager.lock(storedProduct,LockModeType.NONE); release the lock, non necessario.
+
             pip.setPrice(pip.getQuantity()* storedProduct.getPrice());
             pip.setStoredProduct(storedProduct);
             pip.setPurchase(res);
             productInPurchaseRepository.save(pip);//insert record in database
-            //pip=entityManager.merge(pip); insert record in database.
 
             totalPrice+= pip.getPrice();
         }
