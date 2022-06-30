@@ -1,17 +1,19 @@
 package it.carmelogug.puntoinformatica.controllers.rest;
 
-import it.carmelogug.puntoinformatica.entities.Purchase;
+import it.carmelogug.puntoinformatica.entities.purchasing.Cart;
+import it.carmelogug.puntoinformatica.entities.purchasing.Purchase;
 import it.carmelogug.puntoinformatica.entities.User;
+import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.services.PurchasingService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
-import it.carmelogug.puntoinformatica.support.exceptions.Purchase.DateWrongRangeException;
-import it.carmelogug.puntoinformatica.support.exceptions.Purchase.QuantityProductUnvailableException;
+import it.carmelogug.puntoinformatica.support.exceptions.Purchasing.*;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.User.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,24 +22,45 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/purchase")
+@RequestMapping("/purchasing")
 public class PurchasingController {
 
     @Autowired
     private PurchasingService purchasingService;
 
-    @PostMapping
-    public ResponseEntity create(@RequestBody @Valid Purchase purchase){
+
+    /*
+        Metodi per la gestione degli acquisti.
+     */
+
+    /* Metodo da eliminare
+    @PostMapping("/purchase")
+    public ResponseEntity createPurchase(@RequestBody @Valid Purchase purchase){
         try{
+            Purchase result=purchasingService.addPurchase(purchase);
             return new ResponseEntity(new ResponseMessage(
-                    "Purchase order has been added!",purchasingService.addPurchase(purchase))
+                    "Purchase order has been added!",result)
                     ,HttpStatus.OK);
         }catch (QuantityProductUnvailableException | StoredProductNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
     }
+    */
+    @PreAuthorize("hasAuthority('user')")
+    @PostMapping("/purchase/{cart}")
+    public ResponseEntity createPurchase(@PathVariable(value = "cart") Cart cart) {
+        try{
+            Purchase result=purchasingService.addPurchase(cart);
+            return new ResponseEntity(new ResponseMessage(
+                    "Purchase order has been added!",result)
+                    ,HttpStatus.OK);
+        }catch (QuantityProductUnvailableException | CartIsEmptyException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
+    }
 
-    @GetMapping("/{user}")
+    @PreAuthorize("hasAuthority('user')")
+    @GetMapping("/purchases/{user}")
     public ResponseEntity getPurchasesInPeriod(
             @PathVariable (value = "user") User user,
             @RequestParam (value = "startDate",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
@@ -55,6 +78,62 @@ public class PurchasingController {
         }
     }
 
+    /*
+        Metodi per la gestione del carrello
+     */
+
+
+    @PreAuthorize("hasAuthority('user')")
+    @PostMapping("/cart/{user}")
+    public ResponseEntity createCart(@PathVariable (value = "user") User user){
+        try {
+            Cart cart = purchasingService.addCart(user);
+            return new ResponseEntity(new ResponseMessage("Cart created successfully!",cart),HttpStatus.OK);
+        }catch (UserNotFoundException | CartAlreadyExistException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
+    }
+    @PreAuthorize("hasAuthority('user')")
+    @PutMapping("/cart/{user}")
+    public ResponseEntity addStoredProductToCart(@PathVariable (value = "user") User user,
+                                                 @RequestBody StoredProduct storedProduct,
+                                                 @RequestParam (value = "quantity",defaultValue = "1") int quantity){
+        try{
+            Cart cart = purchasingService.addStoredProductToCart(user,storedProduct,quantity);
+            return new ResponseEntity(new ResponseMessage("StoredProduct added successfully!",cart),HttpStatus.OK);
+        }catch (UserNotFoundException | CartNotExistException | StoredProductNotExistException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
+
+
+    }
+    @PreAuthorize("hasAuthority('user')")
+    @DeleteMapping("cart/{user}/{storedProduct}")
+    public ResponseEntity removeStoredProductFromCart(@PathVariable (value ="user") User user,
+                                                      @PathVariable (value = "storedProduct") StoredProduct storedProduct){
+
+        try{
+            Cart cart= purchasingService.removeStoredProductFromCart(user,storedProduct);
+            return new ResponseEntity(new ResponseMessage("Product has been deleted from the cart!",cart),HttpStatus.OK);
+        } catch (StoredProductNotInCart| CartNotExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
+
+    }
+
+    @PreAuthorize("hasAuthority('user')")
+    @GetMapping("/cart/{user}")
+    public ResponseEntity getCartByUser(@PathVariable (value = "user") User user) {
+        try{
+            Cart cart= purchasingService.getCart(user);
+            if(cart.getStoredProductsInCart().size()<=0){
+                return new ResponseEntity(new ResponseMessage("The cart is empty!",cart),HttpStatus.OK);
+            }
+            return new ResponseEntity(cart,HttpStatus.OK);
+        }catch (CartNotExistException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
+    }
 
 
 }

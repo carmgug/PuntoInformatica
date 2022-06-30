@@ -2,7 +2,7 @@ package it.carmelogug.puntoinformatica.controllers.rest;
 
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import it.carmelogug.puntoinformatica.entities.Product;
+import it.carmelogug.puntoinformatica.entities.store.Product;
 import it.carmelogug.puntoinformatica.services.ProductService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
 import it.carmelogug.puntoinformatica.support.Utilities;
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ public class ProductsController {
     @Autowired
     private ProductService productService;
 
+    @PreAuthorize("hasAuthority('admin')")
     @PostMapping
     public ResponseEntity create(@RequestBody @Valid Product product){
         Product p;
@@ -42,11 +44,11 @@ public class ProductsController {
 
 
     //TODO Gestire le transazioni nel database tramite l'entity manager nel caso delle eliminazioni.
+    @PreAuthorize("hasAuthority('admin')")
     @DeleteMapping
     public ResponseEntity delete(@RequestParam(required = true) long barCode,
                                     @RequestParam(required = true) Product.Type type,
                                     @RequestParam(required = true) Product.Category category){
-
         Product p;
         try {
             p=productService.removeProduct(barCode, type, category);
@@ -93,7 +95,7 @@ public class ProductsController {
     }
 
 
-
+    @PreAuthorize("hasAuthority('admin')")
     @GetMapping("/getAll")
     public ResponseEntity getAll(){
         List<Product> result= productService.showAllProducts();
@@ -109,6 +111,7 @@ public class ProductsController {
         type: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un type non esistente
         category: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un category non esistente.
      */
+    @PreAuthorize("hasAuthority('user')")
     @GetMapping("/search/by_name_type_category")
     public ResponseEntity getByNameAndTypeAndCategory(@RequestParam(required = false) String name,
                                     @RequestParam(required = false) Product.Type type,

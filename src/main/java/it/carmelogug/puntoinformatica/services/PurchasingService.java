@@ -1,13 +1,16 @@
 package it.carmelogug.puntoinformatica.services;
 
-import it.carmelogug.puntoinformatica.entities.ProductInPurchase;
-import it.carmelogug.puntoinformatica.entities.Purchase;
-import it.carmelogug.puntoinformatica.entities.StoredProduct;
+import it.carmelogug.puntoinformatica.entities.purchasing.Cart;
+import it.carmelogug.puntoinformatica.entities.purchasing.StoredProductInCart;
+import it.carmelogug.puntoinformatica.entities.purchasing.StoredProductInPurchase;
+import it.carmelogug.puntoinformatica.entities.purchasing.Purchase;
+import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.entities.User;
-import it.carmelogug.puntoinformatica.repositories.ProductInPurchaseRepository;
+import it.carmelogug.puntoinformatica.repositories.CartRepository;
+import it.carmelogug.puntoinformatica.repositories.StoredProductInCartRepository;
+import it.carmelogug.puntoinformatica.repositories.StoredProductInPurchaseRepository;
 import it.carmelogug.puntoinformatica.repositories.PurchaseRepository;
-import it.carmelogug.puntoinformatica.support.exceptions.Purchase.DateWrongRangeException;
-import it.carmelogug.puntoinformatica.support.exceptions.Purchase.QuantityProductUnvailableException;
+import it.carmelogug.puntoinformatica.support.exceptions.Purchasing.*;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.User.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
-import java.sql.Time;
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import java.util.List;
-import java.util.Timer;
 
 @Service
 public class PurchasingService {
@@ -32,25 +32,26 @@ public class PurchasingService {
 
 
     @Autowired
-    PurchaseRepository purchaseRepository;
+    private PurchaseRepository purchaseRepository;
+    @Autowired
+    private StoredProductInPurchaseRepository storedProductInPurchaseRepository;
+    @Autowired
+    private CartRepository cartRepository;
 
     @Autowired
-    ProductInPurchaseRepository productInPurchaseRepository;
-
-
-
+    private StoredProductInCartRepository storedProductInCartRepository;
 
     @PersistenceContext
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
 
 
-
+/*  Old
     @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
     public Purchase addPurchase(Purchase purchase) throws QuantityProductUnvailableException, StoredProductNotExistException {
         Purchase res=purchaseRepository.save(purchase);
         double totalPrice=0;
-        for(ProductInPurchase pip: purchase.getProductsInPurchase()){
+        for(StoredProductInPurchase pip: purchase.getProductsInPurchase()){
             StoredProduct storedProduct=pip.getStoredProduct();
 
             storedProduct=entityManager.find(StoredProduct.class,storedProduct.getId());
@@ -70,7 +71,7 @@ public class PurchasingService {
             pip.setPrice(pip.getQuantity()* storedProduct.getPrice());
             pip.setStoredProduct(storedProduct);
             pip.setPurchase(res);
-            productInPurchaseRepository.save(pip);//insert record in database
+            storedProductInPurchaseRepository.save(pip);//insert record in database
 
             totalPrice+= pip.getPrice();
         }
@@ -78,6 +79,46 @@ public class PurchasingService {
         res.setPrice(totalPrice);
         res=entityManager.merge(res);//update record in database
         return res;
+    }
+
+ */
+    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
+    public Purchase addPurchase(Cart cart) throws QuantityProductUnvailableException, CartIsEmptyException {
+        entityManager.refresh(cart);
+        entityManager.lock(cart,LockModeType.PESSIMISTIC_WRITE);
+        if(cart.getStoredProductsInCart().size()==0) throw new CartIsEmptyException();
+
+        Purchase result=purchaseRepository.save(new Purchase());
+        double totalPrice=0;
+        for(StoredProductInCart currp: cart.getStoredProductsInCart()){
+            StoredProduct storedProduct=currp.getStoredProduct();
+
+            entityManager.lock(storedProduct, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+
+            int newQuantity=storedProduct.getQuantity()-currp.getQuantity();
+
+            if ( newQuantity<0){
+                throw new QuantityProductUnvailableException(
+                        "Quantity Product Unvailable!"+","+
+                                "Product: " + storedProduct.getProduct().toString()+","+
+                                "Available: " + storedProduct.getQuantity()
+                );
+            }
+            storedProduct.setQuantity(newQuantity);
+            StoredProductInPurchase pip=new StoredProductInPurchase();
+            pip.setQuantity(currp.getQuantity());
+            pip.setPrice(currp.getQuantity()*storedProduct.getPrice());
+            pip.setStoredProduct(storedProduct);
+            pip.setPurchase(result);
+            storedProductInPurchaseRepository.save(pip);//insert record in database
+            storedProductInCartRepository.delete(currp); //element has been sold
+            totalPrice+= pip.getPrice();
+        }
+        entityManager.refresh(result);
+        result.setBuyer(cart.getBuyer());
+        result.setPrice(totalPrice);
+        result=entityManager.merge(result);//update record in database
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -94,4 +135,72 @@ public class PurchasingService {
 
         return result;
     }
+
+
+    /*
+        Gestione Carrello
+     */
+
+    @Transactional(readOnly = false)
+    public Cart addCart(User user) throws UserNotFoundException, CartAlreadyExistException {
+        User currUser=entityManager.find(User.class,user.getId());
+        if(currUser==null) throw new UserNotFoundException();
+        if(cartRepository.existsByBuyer(currUser)) throw new CartAlreadyExistException();
+
+        Cart cart=new Cart();
+        cart.setBuyer(currUser);
+        cart=cartRepository.save(cart);
+        return cart;
+    }
+    @Transactional(readOnly = true)
+    public Cart getCart(User user) throws CartNotExistException {
+        Cart currCart=cartRepository.findCartByBuyer(user);
+        if(currCart==null) throw new CartNotExistException();
+        return currCart;
+
+    }
+
+
+    @Transactional(readOnly = false)
+    public Cart addStoredProductToCart(User user,StoredProduct storedProduct,int quantity) throws UserNotFoundException, StoredProductNotExistException, CartNotExistException {
+        //Check--> Probabilmente i controlli sulla ricerca dell'utente non dovrebbero essere fatti!!
+        User currUser=entityManager.find(User.class,user.getId());
+        if(currUser==null) throw new UserNotFoundException();
+
+        storedProduct=entityManager.find(StoredProduct.class,storedProduct.getId());
+        if(storedProduct==null) throw new StoredProductNotExistException();
+
+        Cart currCart=cartRepository.findCartByBuyer(currUser);
+        if(currCart==null) throw new CartNotExistException();
+
+
+        StoredProductInCart addedElement=storedProductInCartRepository.findStoredProductInCartByCartAndStoredProduct(currCart,storedProduct);
+        if(addedElement!=null) {
+            int newQuantity= addedElement.getQuantity()+quantity;
+            addedElement.setQuantity(newQuantity);
+        }
+        else {
+            addedElement=new StoredProductInCart();
+            addedElement.setCart(currCart);
+            addedElement.setStoredProduct(storedProduct);
+            addedElement.setQuantity(quantity);
+        }
+        storedProductInCartRepository.save(addedElement);
+        entityManager.refresh(currCart);
+        return currCart;
+    }
+
+    @Transactional(readOnly = false)
+    public Cart removeStoredProductFromCart(User user,StoredProduct storedProduct) throws CartNotExistException, StoredProductNotInCart {
+        Cart currCart=cartRepository.findCartByBuyer(user);
+        if(currCart==null) throw new CartNotExistException();
+        StoredProductInCart storedProductInCart=storedProductInCartRepository.findStoredProductInCartByCartAndStoredProduct(currCart,storedProduct);
+        if(storedProductInCart==null) throw new StoredProductNotInCart();
+        storedProductInCartRepository.delete(storedProductInCart);
+        entityManager.refresh(currCart);
+        return currCart;
+    }
+
+
+
 }

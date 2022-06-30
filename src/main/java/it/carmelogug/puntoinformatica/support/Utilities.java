@@ -1,7 +1,9 @@
 package it.carmelogug.puntoinformatica.support;
 
-import it.carmelogug.puntoinformatica.entities.Product;
-import it.carmelogug.puntoinformatica.entities.Store;
+import it.carmelogug.puntoinformatica.entities.store.Product;
+import it.carmelogug.puntoinformatica.entities.store.Store;
+import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
 
 
 public final class Utilities {

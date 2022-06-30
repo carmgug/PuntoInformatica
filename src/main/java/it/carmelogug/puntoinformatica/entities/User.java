@@ -2,6 +2,8 @@ package it.carmelogug.puntoinformatica.entities;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.carmelogug.puntoinformatica.entities.purchasing.Cart;
+import it.carmelogug.puntoinformatica.entities.purchasing.Purchase;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,6 +52,10 @@ public class User {
     @OneToMany(mappedBy = "buyer", cascade = CascadeType.MERGE)
     @JsonIgnore
     private List<Purchase> purchases;
+
+    @OneToOne(mappedBy = "buyer", cascade = CascadeType.REMOVE,orphanRemoval = true)
+    @JsonIgnore
+    private Cart cart;
 
 
 

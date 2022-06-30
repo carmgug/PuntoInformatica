@@ -1,6 +1,6 @@
 package it.carmelogug.puntoinformatica.repositories;
 
-import it.carmelogug.puntoinformatica.entities.Purchase;
+import it.carmelogug.puntoinformatica.entities.purchasing.Purchase;
 import it.carmelogug.puntoinformatica.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

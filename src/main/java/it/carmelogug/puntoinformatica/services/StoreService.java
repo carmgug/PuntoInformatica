@@ -1,9 +1,9 @@
 package it.carmelogug.puntoinformatica.services;
 
 
-import it.carmelogug.puntoinformatica.entities.Product;
-import it.carmelogug.puntoinformatica.entities.Store;
-import it.carmelogug.puntoinformatica.entities.StoredProduct;
+import it.carmelogug.puntoinformatica.entities.store.Product;
+import it.carmelogug.puntoinformatica.entities.store.Store;
+import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.repositories.ProductRepository;
 import it.carmelogug.puntoinformatica.repositories.StoreRepository;
 import it.carmelogug.puntoinformatica.repositories.StoredProductRepository;

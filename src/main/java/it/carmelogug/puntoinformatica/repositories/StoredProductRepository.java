@@ -3,15 +3,14 @@ package it.carmelogug.puntoinformatica.repositories;
 
 
 
-import it.carmelogug.puntoinformatica.entities.Product;
-import it.carmelogug.puntoinformatica.entities.Store;
+import it.carmelogug.puntoinformatica.entities.store.Product;
+import it.carmelogug.puntoinformatica.entities.store.Store;
 
-import it.carmelogug.puntoinformatica.entities.StoredProduct;
+import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 
 @Repository

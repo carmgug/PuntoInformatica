@@ -1,7 +1,7 @@
 package it.carmelogug.puntoinformatica.services;
 
 
-import it.carmelogug.puntoinformatica.entities.Product;
+import it.carmelogug.puntoinformatica.entities.store.Product;
 import it.carmelogug.puntoinformatica.repositories.ProductRepository;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @Service

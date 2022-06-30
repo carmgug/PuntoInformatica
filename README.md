@@ -26,3 +26,11 @@ First @PersistenceContext is a special annotation of jpa, and @Autowired is the 
 picture above means that EntityManager is not thread-safe. When multiple requests come in, spring will create multiple 
 threads, and @PersistenceContext It is used to create an EntityManager for each thread, and @Autowired only creates one, 
 which is shared by all threads and may report errors
+
+### Come generare un certificato ssl auto-signed
+https://www.thomasvitale.com/https-spring-boot-ssl-certificate/
+
+### extends WebConfigurerAdapter DEPRECATED
+https://www.codejava.net/frameworks/spring-boot/fix-websecurityconfigureradapter-deprecated
+### keycloack back end
+https://medium.com/@kamleshbadgujar00/secure-spring-boot-angular-9-application-using-keycloak-1-3-b00e801ba693
