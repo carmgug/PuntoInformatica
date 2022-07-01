@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -46,7 +46,7 @@ public class PurchasingController {
         }
     }
     */
-    @PreAuthorize("hasAuthority('user')")
+
     @PostMapping("/purchase/{cart}")
     public ResponseEntity createPurchase(@PathVariable(value = "cart") Cart cart) {
         try{
@@ -59,7 +59,7 @@ public class PurchasingController {
         }
     }
 
-    @PreAuthorize("hasAuthority('user')")
+
     @GetMapping("/purchases/{user}")
     public ResponseEntity getPurchasesInPeriod(
             @PathVariable (value = "user") User user,
@@ -83,7 +83,7 @@ public class PurchasingController {
      */
 
 
-    @PreAuthorize("hasAuthority('user')")
+
     @PostMapping("/cart/{user}")
     public ResponseEntity createCart(@PathVariable (value = "user") User user){
         try {
@@ -93,7 +93,7 @@ public class PurchasingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
     }
-    @PreAuthorize("hasAuthority('user')")
+
     @PutMapping("/cart/{user}")
     public ResponseEntity addStoredProductToCart(@PathVariable (value = "user") User user,
                                                  @RequestBody StoredProduct storedProduct,
@@ -107,7 +107,7 @@ public class PurchasingController {
 
 
     }
-    @PreAuthorize("hasAuthority('user')")
+
     @DeleteMapping("cart/{user}/{storedProduct}")
     public ResponseEntity removeStoredProductFromCart(@PathVariable (value ="user") User user,
                                                       @PathVariable (value = "storedProduct") StoredProduct storedProduct){
@@ -121,7 +121,7 @@ public class PurchasingController {
 
     }
 
-    @PreAuthorize("hasAuthority('user')")
+
     @GetMapping("/cart/{user}")
     public ResponseEntity getCartByUser(@PathVariable (value = "user") User user) {
         try{

@@ -15,7 +15,7 @@ import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredPro
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +34,7 @@ public class StoreController {
     @Autowired
     private StoreService storeService;
 
-    @PreAuthorize("hasAuthority('admin')")
+
     @PostMapping
     public ResponseEntity create(@RequestBody @Valid Store store){
         Store s;
@@ -64,7 +64,7 @@ public class StoreController {
 
     //TODO Gestire con entity manager la consistenza.
     //TODO Gestire la rimozione dello store e dei relativi prodotti.
-    @PreAuthorize("hasAuthority('admin')")
+
     @DeleteMapping
     public ResponseEntity delete(@RequestBody @Valid Store store){
         Store s;
@@ -77,7 +77,7 @@ public class StoreController {
 
     }//delete
 
-    @PreAuthorize("hasAuthority('user')")
+
     @GetMapping("/getAll")
     public ResponseEntity getAll(){
         List<Store> result= storeService.showAllStores();
@@ -87,7 +87,7 @@ public class StoreController {
         return new ResponseEntity<>(result,HttpStatus.OK);
     }//getAll
 
-    @PreAuthorize("hasAuthority('user')")
+
     @GetMapping("/search/by_varparams")
     public ResponseEntity getByCountryAndRegionAndCityAndAddress(
                 @RequestParam(required = false) String country,
@@ -109,7 +109,7 @@ public class StoreController {
     /*
         Restituisce i prodotti venduti in un determinato store
      */
-    @PreAuthorize("hasAuthority('user')")
+
     @GetMapping("/getProducts")
     public ResponseEntity getProducts(@RequestParam int storeID){
         try{
@@ -127,7 +127,7 @@ public class StoreController {
     /*
         Permette di aggiungere un prodtto all'interno di uno store
      */
-    @PreAuthorize("hasAuthority('admin')")
+
     @PutMapping("/addProduct")
     public ResponseEntity addStoredProduct(@RequestBody @Valid StoredProduct storedProduct){
         StoredProduct addedProduct;
@@ -145,7 +145,7 @@ public class StoreController {
         return new ResponseEntity<>(new ResponseMessage("Product added successful to the Store!", addedProduct),HttpStatus.OK);
     }//addStoredProduct
 
-    @PreAuthorize("hasAuthority('admin')")
+
     @PutMapping("/storedProducts/addQuantity")
     public ResponseEntity addQuantityToStoredProduct(
             @RequestBody StoredProduct storedProduct,
@@ -160,7 +160,7 @@ public class StoreController {
 
         return new ResponseEntity(new ResponseMessage("Product quantity has been modifided!",updatedProduct),HttpStatus.OK);
     }
-    @PreAuthorize("hasAuthority('admin')")
+
     @PutMapping("/storedProducts/modifyPrice")
     public ResponseEntity modifyPriceToStoredProduct(
             @RequestBody StoredProduct storedProduct,
@@ -175,7 +175,7 @@ public class StoreController {
 
         return new ResponseEntity(new ResponseMessage("Product price has been modifided!",updatedProduct),HttpStatus.OK);
     }
-    @PreAuthorize("hasAuthority('user')")
+
     @GetMapping("/storedProducts/search/getByvarParams")
     public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
             @RequestBody Store store,
