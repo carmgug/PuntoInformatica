@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 public class AccountingController {
 
-    @PreAuthorize("hasAuthority('User')")
+
     @GetMapping("/logged")
     public ResponseEntity checkLogged() {
+        System.out.println("sono loggato");
         return new ResponseEntity("Check status,"+ AuthenticatioUtils.getEmail(),HttpStatus.OK);
     }
 

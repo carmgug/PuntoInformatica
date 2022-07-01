@@ -17,12 +17,13 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     @Value("${keycloak.resource}")
-    private String CLIENT_NAME;
+    private String CLIENT_NAME="puntoinformatica-springboot";
 
 
     @Override
     @SuppressWarnings("unchecked")
     public AbstractAuthenticationToken convert(final Jwt source) {
+        System.out.println("");
         Map<String, Object> resourceAccess = source.getClaim("resource_access");
         Map<String, Object> resource = (Map<String, Object>) resourceAccess.get(CLIENT_NAME);
         Collection<String> resourceRoles = (Collection<String>) resource.get("roles");
