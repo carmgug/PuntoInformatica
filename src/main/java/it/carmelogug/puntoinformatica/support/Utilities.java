@@ -1,5 +1,6 @@
 package it.carmelogug.puntoinformatica.support;
 
+import it.carmelogug.puntoinformatica.entities.User;
 import it.carmelogug.puntoinformatica.entities.store.Product;
 import it.carmelogug.puntoinformatica.entities.store.Store;
 import lombok.experimental.UtilityClass;
@@ -78,6 +79,7 @@ public final class Utilities {
         store.setProvince(Utilities.upperCase(store.getProvince(),false));
         store.setAddress(Utilities.upperCase(store.getAddress(),false));
     }
+
 
 
 

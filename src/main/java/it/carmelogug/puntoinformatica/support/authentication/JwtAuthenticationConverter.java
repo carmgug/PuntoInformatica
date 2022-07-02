@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 
 public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
-    @Value("${keycloak.resource}")
+
     private static String CLIENT_NAME="puntoinformatica-springboot";
 
 

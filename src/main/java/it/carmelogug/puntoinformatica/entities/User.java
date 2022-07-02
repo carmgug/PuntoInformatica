@@ -39,10 +39,10 @@ public class User {
     @Column(name="last_name",nullable = false)
     private String lastName;
 
-
+    //un utente è identificato dall'email
     @Basic
     @NotBlank(message = "Email may not be blank!")
-    @Column(name="email",nullable = true)
+    @Column(name="email",nullable = false,unique = true)
     private String email;
 
     @Basic
@@ -56,6 +56,16 @@ public class User {
     @OneToOne(mappedBy = "buyer", cascade = CascadeType.REMOVE,orphanRemoval = true)
     @JsonIgnore
     private Cart cart;
+
+    //costruttori
+    public User(String email,String firstName,String lastName,String phoneNumber){
+        this.email=email;
+        this.firstName=firstName;
+        this.lastName=lastName;
+        this.phoneNumber=phoneNumber;
+    }
+    public User(){}
+
 
 
 
