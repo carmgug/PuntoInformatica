@@ -23,7 +23,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter { //este
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers("/check/simple").permitAll()
+                .antMatchers("/check/**").permitAll()
                 .antMatchers("/users/**").permitAll()
                 .antMatchers("/products/**").permitAll()
                 .antMatchers("/purchases/**").permitAll()

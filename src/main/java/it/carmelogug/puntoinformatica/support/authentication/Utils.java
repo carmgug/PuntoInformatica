@@ -23,8 +23,11 @@ public class Utils {
         return getTokenNode().get("subject").asText();
     }
 
-    public String getName() {
-        return getTokenNode().get("sub").asText();
+    public String[] getName() {
+        String[] res=new String[2];
+        res[0]= getTokenNode().get("claims").get("given_name").asText(); //First_name
+        res[1]= getTokenNode().get("claims").get("family_name").asText(); //Last_name
+        return res;
     }
 
     public String getEmail() {
