@@ -14,6 +14,8 @@ public interface ProductRepository extends JpaRepository<Product,Integer> {
     List<Product> findByUrl(String urlProducer);
     List<Product> findProductsByNameContaining(String name);
 
+    Product findProductById(int id);
+
     Product getProductByBarCodeAndTypeAndCategory(long barCode,Product.Type type,Product.Category category);
 
 

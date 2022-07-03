@@ -38,6 +38,15 @@ public class ProductService {
 
     }
 
+    @Transactional(readOnly = true)
+    public Product searchProductById(int id) throws ProductNotExistException {
+        Product result=productRepository.findProductById(id);
+        if(result==null){
+            throw new ProductNotExistException();
+        }
+        return result;
+    }
+
 
 
 

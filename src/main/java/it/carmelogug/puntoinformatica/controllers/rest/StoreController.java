@@ -178,6 +178,21 @@ public class StoreController {
 
     @GetMapping("/storedProducts/search/getByvarParams")
     public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
+            @RequestBody(required = false) Store store,
+            @RequestParam(required = true) int product_id,
+            @RequestParam(required = false) Double price, @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable){
+
+        List<StoredProduct> result=storeService.showStoredProductsByStoreAndProductAndPriceAndQuantity(store,product_id,price,(onlyAvailable) ? 0 :  null);
+        if(result.size()==0){
+            return new ResponseEntity<>(new ResponseMessage("No result!",result),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new ResponseMessage("StoredProducts found!",result),HttpStatus.OK);
+    }
+
+    /*
+        OLD VERSION
+        @GetMapping("/storedProducts/search/getByvarParams")
+    public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
             @RequestBody Store store,
             @RequestParam(required = false) String name,@RequestParam(required = false) Product.Type type, Product.Category category,
             @RequestParam(required = false) Double price, @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable){
@@ -193,6 +208,8 @@ public class StoreController {
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
+     */
+
 
 
 

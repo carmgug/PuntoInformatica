@@ -22,7 +22,7 @@ public interface StoredProductRepository extends JpaRepository<StoredProduct,Int
 
     @Query("SELECT sp " +
             "FROM StoredProduct AS sp " +
-            "WHERE  (sp.store = :store ) AND " +
+            "WHERE  (sp.store = :store OR :store IS NULL) AND " +
             "       (sp.product = :p) AND " +
             "       (sp.price <= :price OR :price IS NULL ) AND " +
             "       (sp.quantity > :quantity OR :quantity IS NULL )")

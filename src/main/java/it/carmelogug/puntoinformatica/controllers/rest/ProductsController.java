@@ -13,6 +13,7 @@ import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -111,7 +112,7 @@ public class ProductsController {
         type: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un type non esistente
         category: può essere null, viene gestita l'eccezzione nel caso in cui venga passato un category non esistente.
      */
-
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/search/by_name_type_category")
     public ResponseEntity getByNameAndTypeAndCategory(@RequestParam(required = false) String name,
                                     @RequestParam(required = false) Product.Type type,
@@ -123,6 +124,18 @@ public class ProductsController {
             return new ResponseEntity<>(new ResponseMessage("No result!", null),HttpStatus.OK);
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
+    @GetMapping("/search/by_id")
+    public ResponseEntity getById(@RequestParam(required = true) String id){
+        System.out.println(id);
+        try {
+            Product result = productService.searchProductById(Integer.parseInt(id));
+            return new ResponseEntity<>(new ResponseMessage("Product found",result),HttpStatus.OK);
+        }catch (ProductNotExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not exist!", e);
+        }
     }
 
     /*

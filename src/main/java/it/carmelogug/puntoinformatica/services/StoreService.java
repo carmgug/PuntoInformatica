@@ -203,14 +203,15 @@ public class StoreService {
     @Transactional(readOnly = true)
     public List<StoredProduct> showStoredProductsByStoreAndProductAndPriceAndQuantity(
             Store store,
-            String name,Product.Type type, Product.Category category,
+            int product_id,
             Double price,Integer quantity
     ){
-        List<StoredProduct> result= new LinkedList<StoredProduct>();
-        List<Product> products= productRepository.advSearchByNameAndTypeAndCategory(name,type,category);
-        for(Product p: products){
-            result.addAll(storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,p,price,quantity));
-        }
+        List<StoredProduct> result;
+        Product product= productRepository.findProductById(product_id);
+
+        System.out.println(product);
+        result=storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,product,price,quantity);
+        if(result.size()==0) System.out.println("cazzo");
 
         return result;
     }//showSearchByStoreAndProductAndPriceAndQuantity
