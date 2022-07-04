@@ -35,12 +35,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter { //este
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.addAllowedOrigin("*");
+        configuration.addAllowedOrigin("http://localhost:4200"); //indirizzo front end
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("OPTIONS");
         configuration.addAllowedMethod("GET");
         configuration.addAllowedMethod("POST");
         configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("DELETE");
         source.registerCorsConfiguration("/**", configuration);
         return new CorsFilter(source);
     }

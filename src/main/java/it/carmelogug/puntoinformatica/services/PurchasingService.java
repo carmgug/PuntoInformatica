@@ -6,10 +6,7 @@ import it.carmelogug.puntoinformatica.entities.purchasing.StoredProductInPurchas
 import it.carmelogug.puntoinformatica.entities.purchasing.Purchase;
 import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.entities.User;
-import it.carmelogug.puntoinformatica.repositories.CartRepository;
-import it.carmelogug.puntoinformatica.repositories.StoredProductInCartRepository;
-import it.carmelogug.puntoinformatica.repositories.StoredProductInPurchaseRepository;
-import it.carmelogug.puntoinformatica.repositories.PurchaseRepository;
+import it.carmelogug.puntoinformatica.repositories.*;
 import it.carmelogug.puntoinformatica.support.exceptions.Purchasing.*;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.User.UserNotFoundException;
@@ -37,6 +34,9 @@ public class PurchasingService {
     private StoredProductInPurchaseRepository storedProductInPurchaseRepository;
     @Autowired
     private CartRepository cartRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private StoredProductInCartRepository storedProductInCartRepository;
@@ -100,7 +100,7 @@ public class PurchasingService {
             if ( newQuantity<0){
                 throw new QuantityProductUnvailableException(
                         "Quantity Product Unvailable!"+","+
-                                "Product: " + storedProduct.getProduct().toString()+","+
+                                "Product: " + storedProduct.getId()+","+
                                 "Available: " + storedProduct.getQuantity()
                 );
             }
@@ -153,8 +153,9 @@ public class PurchasingService {
         return cart;
     }
     @Transactional(readOnly = true)
-    public Cart getCart(User user) throws CartNotExistException {
-        Cart currCart=cartRepository.findCartByBuyer(user);
+    public Cart getCart(String email) throws CartNotExistException {
+        User currUser=userRepository.findUserByEmail(email);
+        Cart currCart=cartRepository.findCartByBuyer(currUser);
         if(currCart==null) throw new CartNotExistException();
         return currCart;
 
@@ -162,9 +163,9 @@ public class PurchasingService {
 
 
     @Transactional(readOnly = false)
-    public Cart addStoredProductToCart(User user,StoredProduct storedProduct,int quantity) throws UserNotFoundException, StoredProductNotExistException, CartNotExistException {
-        //Check--> Probabilmente i controlli sulla ricerca dell'utente non dovrebbero essere fatti!!
-        User currUser=entityManager.find(User.class,user.getId());
+    public Cart addStoredProductToCart(String email,StoredProduct storedProduct,int quantity) throws UserNotFoundException, StoredProductNotExistException, CartNotExistException {
+
+        User currUser=userRepository.findUserByEmail(email);
         if(currUser==null) throw new UserNotFoundException();
 
         storedProduct=entityManager.find(StoredProduct.class,storedProduct.getId());
@@ -191,16 +192,23 @@ public class PurchasingService {
     }
 
     @Transactional(readOnly = false)
-    public Cart removeStoredProductFromCart(User user,StoredProduct storedProduct) throws CartNotExistException, StoredProductNotInCart {
-        Cart currCart=cartRepository.findCartByBuyer(user);
-        if(currCart==null) throw new CartNotExistException();
-        StoredProductInCart storedProductInCart=storedProductInCartRepository.findStoredProductInCartByCartAndStoredProduct(currCart,storedProduct);
+    public Cart removeStoredProductFromCart(String email,StoredProductInCart storedProductInCart) throws CartNotExistException, StoredProductNotInCart {
+        StoredProductInCart spic=storedProductInCartRepository.findStoredProductInCartById(storedProductInCart.getId());
         if(storedProductInCart==null) throw new StoredProductNotInCart();
-        storedProductInCartRepository.delete(storedProductInCart);
-        entityManager.refresh(currCart);
+        storedProductInCartRepository.delete(spic);
+        //restituisco il carrello aggiornato
+        User currUser=userRepository.findUserByEmail(email);
+        Cart currCart=cartRepository.findCartByBuyer(currUser);
         return currCart;
     }
 
 
+    public Cart modifyquantityStoredProductInCart( StoredProductInCart storedProductInCart, int quantity) throws StoredProductNotInCart {
+        StoredProductInCart spic=storedProductInCartRepository.findStoredProductInCartById(storedProductInCart.getId());
+        if(storedProductInCart==null) throw new StoredProductNotInCart();
+        spic.setQuantity(quantity);
+        spic=storedProductInCartRepository.save(spic);
+        return spic.getCart();
 
+    }
 }

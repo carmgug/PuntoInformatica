@@ -9,5 +9,6 @@ public interface StoredProductInCartRepository extends JpaRepository<StoredProdu
 
 
     StoredProductInCart findStoredProductInCartByCartAndStoredProduct(Cart cart, StoredProduct storedProduct);
+    StoredProductInCart findStoredProductInCartById(int id);
 
 }

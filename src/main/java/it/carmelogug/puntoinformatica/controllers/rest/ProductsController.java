@@ -121,9 +121,9 @@ public class ProductsController {
         name= Utilities.upperCase(name,true);
         List<Product> result= productService.showProductsByNameAndTypeAndCategory(name,type,category);
         if(result.size()<=0){
-            return new ResponseEntity<>(new ResponseMessage("No result!", null),HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseMessage("No result!", result),HttpStatus.OK);
         }
-        return new ResponseEntity<>(result,HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseMessage("oK",result),HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
