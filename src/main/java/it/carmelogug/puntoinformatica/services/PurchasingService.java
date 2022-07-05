@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import java.util.Calendar;
 import java.util.Date;
 
 import java.util.List;
@@ -122,16 +123,29 @@ public class PurchasingService {
     }
 
     @Transactional(readOnly = true)
-    public List<Purchase> getPurchasesByUserInPeriod(User user, Date startDate, Date endDate) throws UserNotFoundException, DateWrongRangeException {
+    public List<Purchase> getPurchasesByUserInPeriod(String email, Date startDate, Date endDate) throws UserNotFoundException, DateWrongRangeException {
 
-        if(startDate!=null && endDate!=null && startDate.after(endDate)) throw new DateWrongRangeException();
+
 
         if(startDate==null) startDate=new Date(0); //1970-01-01
         if(endDate==null) endDate=new Date(System.currentTimeMillis());
 
-        User currUser=entityManager.find(User.class,user.getId());
+
+        if(endDate!=null) {
+            Calendar c=Calendar.getInstance();
+            c.setTime(endDate);
+            c.set(Calendar.SECOND, 59);
+            c.set(Calendar.MINUTE, 59);
+            c.set(Calendar.HOUR_OF_DAY, 23);
+            endDate=c.getTime();
+        }
+        if(startDate.after(endDate)) throw new DateWrongRangeException();
+
+
+
+        User currUser=userRepository.findUserByEmail(email);
         if(currUser==null) throw new UserNotFoundException();
-        List<Purchase> result= purchaseRepository.getPurchasesByBuyerAndPurchaseTimeBetweenStartDateAndEndDate(user,startDate,endDate);
+        List<Purchase> result= purchaseRepository.getPurchasesByBuyerAndPurchaseTimeBetweenStartDateAndEndDate(currUser,startDate,endDate);
 
         return result;
     }

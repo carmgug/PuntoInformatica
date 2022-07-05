@@ -51,38 +51,11 @@ public class PurchasingController {
     }
     */
 
-    @PostMapping("/purchase/{cart}")
-    public ResponseEntity createPurchase(@PathVariable(value = "cart") Cart cart) {
-        try{
-            Purchase result=purchasingService.addPurchase(cart);
-            return new ResponseEntity(new ResponseMessage(
-                    "Purchase order has been processed!",result)
-                    ,HttpStatus.OK);
-        }catch (QuantityProductUnvailableException | CartIsEmptyException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
-        }
-    }
 
-    @PreAuthorize("hasAuthority('puntoinformatica-user')")
-    @GetMapping("/purchases/by_period")
-    public ResponseEntity getPurchasesInPeriod(
-            @RequestParam (value = "startDate",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam (value = "endDate",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
 
-        try {
-            //TODO MODIFICHE NECESSARIE
-            User user=new User();
-            user.setEmail(Utils.getEmail());
-            List<Purchase>result = purchasingService.getPurchasesByUserInPeriod(user, startDate, endDate);
-            if (result.size() <= 0) {
-                return new ResponseEntity(new ResponseMessage("No result!"), HttpStatus.OK);
-            }
-            return new ResponseEntity(result,HttpStatus.OK);
 
-        }catch(UserNotFoundException | DateWrongRangeException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
-        }
-    }
+
+
 
     /*
         Metodi per la gestione del carrello
@@ -100,14 +73,6 @@ public class PurchasingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
     }
-
-
-
-
-
-
-
-
 
     /*
         Metodi utilizzati dal frontEnd
@@ -139,6 +104,20 @@ public class PurchasingController {
         }
     }
 
+
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
+    @DeleteMapping("/cart/my_cart/removeStoredProductInCart")
+    public ResponseEntity removeStoredProductFromCart(@RequestBody @Valid StoredProductInCart storedProductInCart){
+
+        try{
+            Cart cart= purchasingService.removeStoredProductFromCart(Utils.getEmail(),storedProductInCart);
+            return new ResponseEntity(new ResponseMessage("Product has been deleted from the cart!",cart),HttpStatus.OK);
+        } catch (StoredProductNotInCart| CartNotExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
+
+    }
+
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/cart/my_cart")
     public ResponseEntity getCartByUser() {
@@ -152,17 +131,39 @@ public class PurchasingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
     }
-    @PreAuthorize("hasAuthority('puntoinformatica-user')")
-    @DeleteMapping("/cart/my_cart/removeStoredProductInCart")
-    public ResponseEntity removeStoredProductFromCart(@RequestBody @Valid StoredProductInCart storedProductInCart){
 
-        try{
-            Cart cart= purchasingService.removeStoredProductFromCart(Utils.getEmail(),storedProductInCart);
-            return new ResponseEntity(new ResponseMessage("Product has been deleted from the cart!",cart),HttpStatus.OK);
-        } catch (StoredProductNotInCart| CartNotExistException e) {
+
+    /*
+        startDate e endDate possono essere null, in tal caso vengono restituiti tutti gli acquisti dell'utente loggato.
+     */
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
+    @GetMapping("/purchases/by_period")
+    public ResponseEntity getPurchasesInPeriod(
+            @RequestParam (value = "startDate",required = false) @DateTimeFormat(pattern = "MM-dd-yyyy") Date startDate,
+            @RequestParam (value = "endDate",required = false) @DateTimeFormat(pattern = "MM-dd-yyyy") Date endDate) {
+
+        try {
+            List<Purchase>result = purchasingService.getPurchasesByUserInPeriod(Utils.getEmail(), startDate, endDate);
+            if (result.size() <= 0) {
+                return new ResponseEntity(new ResponseMessage("No result!",result), HttpStatus.OK);
+            }
+            return new ResponseEntity(new ResponseMessage("Purchases founded",result),HttpStatus.OK);
+
+        }catch(UserNotFoundException | DateWrongRangeException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
+    }
 
+    @PostMapping("/purchase/{cart}")
+    public ResponseEntity createPurchase(@PathVariable(value = "cart") Cart cart) {
+        try{
+            Purchase result=purchasingService.addPurchase(cart);
+            return new ResponseEntity(new ResponseMessage(
+                    "Purchase order has been processed!",result)
+                    ,HttpStatus.OK);
+        }catch (QuantityProductUnvailableException | CartIsEmptyException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
+        }
     }
 
 
