@@ -3,6 +3,7 @@ package it.carmelogug.puntoinformatica.controllers.rest;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import it.carmelogug.puntoinformatica.entities.store.Product;
+import it.carmelogug.puntoinformatica.entities.store.Store;
 import it.carmelogug.puntoinformatica.services.ProductService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
 import it.carmelogug.puntoinformatica.support.Utilities;
@@ -43,21 +44,33 @@ public class ProductsController {
         return new ResponseEntity(new ResponseMessage("Added successful!",p),HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
+    @DeleteMapping("/{product}")
+    public ResponseEntity banProduct(@PathVariable(value = "product") Product product){
 
-    //TODO Gestire le transazioni nel database tramite l'entity manager nel caso delle eliminazioni.
-
-    @DeleteMapping
-    public ResponseEntity delete(@RequestParam(required = true) long barCode,
-                                    @RequestParam(required = true) Product.Type type,
-                                    @RequestParam(required = true) Product.Category category){
-        Product p;
         try {
-            p=productService.removeProduct(barCode, type, category);
+            Product bannedProduct=productService.banProduct(product);
+            return new ResponseEntity<>(new ResponseMessage("Product has been banned!",bannedProduct),HttpStatus.OK);
+
         }catch (ProductNotExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!", e);
         }
-        return new ResponseEntity<>(new ResponseMessage("Product has been deleted",p),HttpStatus.OK);
     }
+
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
+    @PutMapping("/{product}")
+    public ResponseEntity unBanProduct(@PathVariable(value = "product") Product product){
+
+        try {
+            Product bannedProduct=productService.unBanProduct(product);
+            return new ResponseEntity<>(new ResponseMessage("Product has been unBanned!",bannedProduct),HttpStatus.OK);
+
+        }catch (ProductNotExistException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!", e);
+        }
+    }
+
+
 
 
     /*
@@ -105,6 +118,10 @@ public class ProductsController {
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
+
+
+
+
 
 
     /*
@@ -159,6 +176,7 @@ public class ProductsController {
         return msg;
 
     }
+
 
 
 

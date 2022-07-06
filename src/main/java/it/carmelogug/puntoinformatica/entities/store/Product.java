@@ -25,9 +25,7 @@ public class Product {
     @Column(name = "product_id", nullable = false)
     private Integer id;
 
-    /*
-        Campi obbligatori
-     */
+
     @Basic
     @NotBlank(message = "name may not be blank!")
     @Column(name = "product_name",nullable = false)
@@ -50,9 +48,10 @@ public class Product {
     @Column(name="bar_code",nullable = false)
     private Long barCode;
 
-    /*
-        Campi opzionali
-     */
+    @Basic
+    @Column(name="is_banned", columnDefinition = "boolean default false")
+    private boolean banned;
+
     @Basic
     @Column(name= "description",nullable = true,length = 500)
     @ToString.Exclude

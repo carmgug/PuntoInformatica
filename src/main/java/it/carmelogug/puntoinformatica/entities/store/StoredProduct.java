@@ -2,6 +2,7 @@ package it.carmelogug.puntoinformatica.entities.store;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.carmelogug.puntoinformatica.entities.purchasing.StoredProductInCart;
 import it.carmelogug.puntoinformatica.entities.store.Product;
 import it.carmelogug.puntoinformatica.entities.store.Store;
 import lombok.EqualsAndHashCode;
@@ -15,6 +16,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.List;
 
 
 @Getter
@@ -66,6 +68,10 @@ public class StoredProduct {
     @JoinColumn(name="product_id")
     private Product product;
 
+    @OneToMany(mappedBy = "storedProduct", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @JsonIgnore
+    private List<StoredProductInCart> storedProductsInCart;
 
 
 

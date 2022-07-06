@@ -1,6 +1,8 @@
 package it.carmelogug.puntoinformatica.entities.purchasing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.carmelogug.puntoinformatica.entities.store.Product;
+import it.carmelogug.puntoinformatica.entities.store.Store;
 import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,8 +12,8 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "stored_products_in_purchase", schema = "punto_informatica")
-public class StoredProductInPurchase {
+@Table(name = "products_in_purchase", schema = "punto_informatica")
+public class ProductInPurchase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -31,7 +33,16 @@ public class StoredProductInPurchase {
     @ToString.Exclude
     private Purchase purchase;
 
+
+
+    /*
+
+     */
     @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "stored_product")
-    private StoredProduct storedProduct;
+    @JoinColumn(name = "store")
+    private Store store;
+
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "product")
+    private Product product;
 }

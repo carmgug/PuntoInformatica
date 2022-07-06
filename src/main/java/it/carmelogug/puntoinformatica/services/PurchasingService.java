@@ -2,7 +2,7 @@ package it.carmelogug.puntoinformatica.services;
 
 import it.carmelogug.puntoinformatica.entities.purchasing.Cart;
 import it.carmelogug.puntoinformatica.entities.purchasing.StoredProductInCart;
-import it.carmelogug.puntoinformatica.entities.purchasing.StoredProductInPurchase;
+import it.carmelogug.puntoinformatica.entities.purchasing.ProductInPurchase;
 import it.carmelogug.puntoinformatica.entities.purchasing.Purchase;
 import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.entities.User;
@@ -32,7 +32,7 @@ public class PurchasingService {
     @Autowired
     private PurchaseRepository purchaseRepository;
     @Autowired
-    private StoredProductInPurchaseRepository storedProductInPurchaseRepository;
+    private ProductInPurchaseRepository productInPurchaseRepository;
     @Autowired
     private CartRepository cartRepository;
 
@@ -46,43 +46,6 @@ public class PurchasingService {
     private EntityManager entityManager;
 
 
-
-/*  Old
-    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
-    public Purchase addPurchase(Purchase purchase) throws QuantityProductUnvailableException, StoredProductNotExistException {
-        Purchase res=purchaseRepository.save(purchase);
-        double totalPrice=0;
-        for(StoredProductInPurchase pip: purchase.getProductsInPurchase()){
-            StoredProduct storedProduct=pip.getStoredProduct();
-
-            storedProduct=entityManager.find(StoredProduct.class,storedProduct.getId());
-            if(storedProduct==null) throw new StoredProductNotExistException();
-
-            entityManager.lock(storedProduct, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-            int newQuantity=storedProduct.getQuantity()-pip.getQuantity();
-            if ( newQuantity<0){
-                throw new QuantityProductUnvailableException(
-                        "Quantity Product Unvailable!"+","+
-                        "Product: " + storedProduct.getProduct().toString()+","+
-                        "Available: " + storedProduct.getQuantity()
-                );
-            }
-            storedProduct.setQuantity(newQuantity);
-
-            pip.setPrice(pip.getQuantity()* storedProduct.getPrice());
-            pip.setStoredProduct(storedProduct);
-            pip.setPurchase(res);
-            storedProductInPurchaseRepository.save(pip);//insert record in database
-
-            totalPrice+= pip.getPrice();
-        }
-        entityManager.refresh(res);
-        res.setPrice(totalPrice);
-        res=entityManager.merge(res);//update record in database
-        return res;
-    }
-
- */
     @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
     public Purchase addPurchase(Cart cart) throws QuantityProductUnvailableException, CartIsEmptyException {
         entityManager.refresh(cart);
@@ -106,12 +69,14 @@ public class PurchasingService {
                 );
             }
             storedProduct.setQuantity(newQuantity);
-            StoredProductInPurchase pip=new StoredProductInPurchase();
+
+            ProductInPurchase pip=new ProductInPurchase();
             pip.setQuantity(currp.getQuantity());
             pip.setPrice(currp.getQuantity()*storedProduct.getPrice());
-            pip.setStoredProduct(storedProduct);
+            pip.setStore(storedProduct.getStore());
+            pip.setProduct(storedProduct.getProduct());
             pip.setPurchase(result);
-            storedProductInPurchaseRepository.save(pip);//insert record in database
+            productInPurchaseRepository.save(pip);//insert record in database
             storedProductInCartRepository.delete(currp); //element has been sold
             totalPrice+= pip.getPrice();
         }

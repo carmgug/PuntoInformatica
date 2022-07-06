@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,60 +36,52 @@ public class StoreController {
     @Autowired
     private StoreService storeService;
 
-
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PostMapping
     public ResponseEntity create(@RequestBody @Valid Store store){
-        Store s;
         try{
-            s=storeService.addStore(store);
+            Store createdStore=storeService.addStore(store);
+            return new ResponseEntity(new ResponseMessage("Store added successful!",createdStore),HttpStatus.OK);
         }catch (StoreAlreadyExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Store already exist!",e);
         }
-        return new ResponseEntity(new ResponseMessage("Store added successful!",s),HttpStatus.OK);
     }//create
 
-    /*
-        Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
-        Restituisce i campi della classe e il messaggio di errore associato.
-     */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return errors;
-    }
 
-    //TODO Gestire con entity manager la consistenza.
-    //TODO Gestire la rimozione dello store e dei relativi prodotti.
 
-    @DeleteMapping
-    public ResponseEntity delete(@RequestBody @Valid Store store){
-        Store s;
+    //utilizzato dal frontEnd
+
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
+    @DeleteMapping("/{store}")
+    public ResponseEntity banStore(@PathVariable(value = "store") Store store){
         try{
-            s=storeService.removeStore(store);
+            Store removedStore;
+            removedStore=storeService.removeStore(store);
+            return new ResponseEntity<>(new ResponseMessage("Store has been banned",removedStore),HttpStatus.OK);
         }catch (StoreNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Store not exist!",e);
         }
-        return new ResponseEntity<>(new ResponseMessage("Store has been deleted",s),HttpStatus.OK);
+    }//delete
 
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
+    @PutMapping("/{store}")
+    public ResponseEntity unbanStore(@PathVariable(value = "store") Store store){
+        try{
+            Store updatedStore=storeService.unbanStore(store);
+            return new ResponseEntity<>(new ResponseMessage("Store has been unbanned",updatedStore),HttpStatus.OK);
+        }catch (StoreNotExistException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Store not exist!",e);
+        }
     }//delete
 
 
-    @GetMapping("/getAll")
-    public ResponseEntity getAll(){
-        List<Store> result= storeService.showAllStores();
-        if(result.size()==0){
-            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
-        }
-        return new ResponseEntity<>(result,HttpStatus.OK);
-    }//getAll
 
 
+
+
+    /*
+        Utilizzata dal front end
+     */
     @GetMapping("/search/by_varparams")
     public ResponseEntity getByCountryAndRegionAndCityAndAddress(
                 @RequestParam(required = false) String country,
@@ -99,9 +93,9 @@ public class StoreController {
         List<Store> result= storeService.showStoresByCountryAndRegionAndCityAndProvinceAndAddress(
                 country,region,city,province,address);
         if(result.size()==0){
-            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseMessage("No result!",result),HttpStatus.OK);
         }
-        return new ResponseEntity<>(result,HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseMessage("Request processed!",result),HttpStatus.OK);
     }//getByCountryAndRegionAndCityAndAddress
 
 
@@ -125,24 +119,24 @@ public class StoreController {
     }//getProducts
 
     /*
-        Permette di aggiungere un prodtto all'interno di uno store
+        Permette di aggiungere un prodotto all'interno di uno store
      */
 
-    @PutMapping("/addProduct")
-    public ResponseEntity addStoredProduct(@RequestBody @Valid StoredProduct storedProduct){
-        StoredProduct addedProduct;
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
+    @PostMapping("/{store}/{product}")
+    public ResponseEntity addStoredProduct(@PathVariable(value = "store") Store store, @PathVariable(value = "product") Product product,
+                                           @RequestParam @PositiveOrZero int quantity, @RequestParam @Positive double price){
         try{
-            addedProduct=storeService.addStoredProduct(storedProduct);
+            StoredProduct addedProduct=new StoredProduct();
+            addedProduct.setStore(store); addedProduct.setProduct(product);
+            addedProduct.setPrice(price); addedProduct.setQuantity(quantity);
+
+            addedProduct=storeService.addStoredProduct(addedProduct);
+            return new ResponseEntity<>(new ResponseMessage("Product added successful to the Store!", addedProduct),HttpStatus.OK);
+
         }catch (StoreNotExistException | ProductNotExistException | StoredProductAlreadyExistException e){
-            if( e instanceof StoreNotExistException )
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Store not exist!",e);
-            else if( e instanceof ProductNotExistException){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!",e);
-            }
-            else
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"This product is alredy stored!",e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-        return new ResponseEntity<>(new ResponseMessage("Product added successful to the Store!", addedProduct),HttpStatus.OK);
     }//addStoredProduct
 
 
@@ -176,6 +170,10 @@ public class StoreController {
         return new ResponseEntity(new ResponseMessage("Product price has been modifided!",updatedProduct),HttpStatus.OK);
     }
 
+    /*
+        Utilizzata dal front end;
+     */
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/storedProducts/search/getByvarParams")
     public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
             @RequestBody(required = false) Store store,
@@ -189,8 +187,38 @@ public class StoreController {
         return new ResponseEntity<>(new ResponseMessage("StoredProducts found!",result),HttpStatus.OK);
     }
 
+
     /*
-        OLD VERSION
+        OLD VERSION METODI DA ELIMINARE
+
+        @GetMapping("/getAll")
+    public ResponseEntity getAll(){
+        List<Store> result= storeService.showAllStores();
+        if(result.size()==0){
+            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(result,HttpStatus.OK);
+    }//getAll
+
+        Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
+        Restituisce i campi della classe e il messaggio di errore associato.
+
+        @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
+    }
+
+
+
+
+
         @GetMapping("/storedProducts/search/getByvarParams")
     public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
             @RequestBody Store store,

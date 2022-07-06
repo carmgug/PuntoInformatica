@@ -16,7 +16,7 @@
         <setting name="provider-name" value="Hibernate" />
         <datasource-mapping>
           <factory-entry name="PuntoInformatica" value="f3364600-2ebb-4427-853b-b6a4052cd722" />
-          <factory-entry name="entityManagerFactory" />
+          <factory-entry name="entityManagerFactory" value="f3364600-2ebb-4427-853b-b6a4052cd722" />
         </datasource-mapping>
         <naming-strategy-map />
       </configuration>

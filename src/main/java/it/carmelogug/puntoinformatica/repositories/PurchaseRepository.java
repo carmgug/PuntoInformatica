@@ -14,7 +14,8 @@ public interface PurchaseRepository extends JpaRepository<Purchase,Integer> {
             "FROM Purchase AS p " +
             "WHERE (p.buyer = :user) AND " +
             "       (p.purchaseTime >= :startDate ) AND " +
-            "       (p.purchaseTime <= :endDate)" )
+            "       (p.purchaseTime <= :endDate) "+
+            "order by p.purchaseTime DESC ")
     List<Purchase> getPurchasesByBuyerAndPurchaseTimeBetweenStartDateAndEndDate(User user, Date startDate,Date endDate);
 
 }

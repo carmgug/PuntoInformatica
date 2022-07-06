@@ -29,7 +29,7 @@ public class StoredProductInCart {
     @ToString.Exclude
     private Cart cart;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name="stored_product")
     private StoredProduct storedProduct;
 

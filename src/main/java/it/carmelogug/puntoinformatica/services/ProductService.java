@@ -2,20 +2,33 @@ package it.carmelogug.puntoinformatica.services;
 
 
 import it.carmelogug.puntoinformatica.entities.store.Product;
+import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.repositories.ProductRepository;
+import it.carmelogug.puntoinformatica.repositories.StoredProductRepository;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @Service
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private StoredProductRepository storedProductRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /*
         Metodi per l'aggiunta e l'eleminazione dei prodotti
@@ -29,13 +42,24 @@ public class ProductService {
         return result;
     }
 
-    @Transactional(readOnly = false)
-    public Product removeProduct(long barCode,Product.Type type,Product.Category category) throws ProductNotExistException{
-        Product p = productRepository.getProductByBarCodeAndTypeAndCategory(barCode, type, category);
-        if(p==null) throw new ProductNotExistException();
-        productRepository.delete(p);
-        return p; //ritorno l'oggetto rimosso
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
+    public Product banProduct(Product product) throws ProductNotExistException{
+        Product currProduct = entityManager.find(Product.class,product.getId());
+        if(currProduct==null) throw new ProductNotExistException();
+        for(StoredProduct sp:currProduct.getStoredProducts()){
+            entityManager.lock(sp, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+            storedProductRepository.delete(sp);
+        }
+        currProduct.setBanned(true);
+        return currProduct; //ritorno l'oggetto rimosso
+    }
 
+    @Transactional(readOnly = false)
+    public Product unBanProduct(Product product) throws ProductNotExistException {
+        Product currProduct = entityManager.find(Product.class,product.getId());
+        if(currProduct==null) throw new ProductNotExistException();
+        currProduct.setBanned(false);
+        return currProduct; //ritorno l'oggetto rimosso
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +93,6 @@ public class ProductService {
     public List<Product> showProductsByNameAndTypeAndCategory(String name,Product.Type type,Product.Category category){
         return productRepository.advSearchByNameAndTypeAndCategory(name,type,category);
     }
-
 
 
 

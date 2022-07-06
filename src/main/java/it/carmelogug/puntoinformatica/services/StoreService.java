@@ -49,24 +49,39 @@ public class StoreService {
 
     @Transactional(readOnly = false)
     public Store addStore(Store store) throws StoreAlreadyExistException{
+        Utilities.adjustPropreties(store);
         if(storeRepository.existsByCountryAndRegionAndCityAndProvinceAndAddress(
                 store.getCountry(),store.getRegion(),
                 store.getCity(),store.getProvince(),
                 store.getAddress() )){
             throw new StoreAlreadyExistException();
         }
-        Utilities.adjustPropreties(store);
+
         store=storeRepository.save(store);
         return store;
     }
 
-    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     public Store removeStore(Store store) throws StoreNotExistException {
-        Store s=storeRepository.findStoreById(store.getId());
-        if(s==null) throw new StoreNotExistException();
-        storeRepository.delete(s);
-        return s;
+        Store currStore=storeRepository.findStoreById(store.getId());
+        if(currStore==null) throw new StoreNotExistException();
+        for(StoredProduct sp:currStore.getStoredProducts()){
+            entityManager.lock(sp,LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+            storedProductRepository.delete(sp);
+        }
+        currStore.setBanned(true);
+        return currStore;
     }
+
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
+    public Store unbanStore(Store store) throws StoreNotExistException {
+        Store currStore=storeRepository.findStoreById(store.getId());
+        if(currStore==null) throw new StoreNotExistException();
+        currStore.setBanned(false);
+        return currStore;
+    }
+
+
 
     @Transactional(readOnly = true)
     public List<Store> showAllStores(){
@@ -211,7 +226,7 @@ public class StoreService {
 
         System.out.println(product);
         result=storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,product,price,quantity);
-        if(result.size()==0) System.out.println("cazzo");
+
 
         return result;
     }//showSearchByStoreAndProductAndPriceAndQuantity

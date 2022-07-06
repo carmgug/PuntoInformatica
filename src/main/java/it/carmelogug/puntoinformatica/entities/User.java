@@ -49,7 +49,7 @@ public class User {
     @Column(name="phone_number")
     private String phoneNumber;
 
-    @OneToMany(mappedBy = "buyer", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "buyer", cascade = CascadeType.MERGE,orphanRemoval = true)
     @JsonIgnore
     private List<Purchase> purchases;
 

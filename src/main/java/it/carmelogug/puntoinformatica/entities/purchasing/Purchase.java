@@ -33,5 +33,5 @@ public class Purchase {
     private User buyer;
 
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.MERGE)
-    private List<StoredProductInPurchase> productsInPurchase;
+    private List<ProductInPurchase> productsInPurchase;
 }
