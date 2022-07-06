@@ -9,7 +9,7 @@ import it.carmelogug.puntoinformatica.repositories.StoreRepository;
 import it.carmelogug.puntoinformatica.repositories.StoredProductRepository;
 import it.carmelogug.puntoinformatica.support.Utilities;
 
-import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
+
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductAlreadyExistException;
@@ -25,8 +25,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 
-
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -42,10 +40,13 @@ public class StoreService {
     @Autowired
     private ProductRepository productRepository;
 
-
-
     @PersistenceContext
     private EntityManager entityManager;
+
+
+    /*
+        +++Methods for managing stores+++
+    */
 
     @Transactional(readOnly = false)
     public Store addStore(Store store) throws StoreAlreadyExistException{
@@ -56,13 +57,12 @@ public class StoreService {
                 store.getAddress() )){
             throw new StoreAlreadyExistException();
         }
-
         store=storeRepository.save(store);
         return store;
     }
 
     @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    public Store removeStore(Store store) throws StoreNotExistException {
+    public Store banStore(Store store) throws StoreNotExistException {
         Store currStore=storeRepository.findStoreById(store.getId());
         if(currStore==null) throw new StoreNotExistException();
         for(StoredProduct sp:currStore.getStoredProducts()){
@@ -81,14 +81,6 @@ public class StoreService {
         return currStore;
     }
 
-
-
-    @Transactional(readOnly = true)
-    public List<Store> showAllStores(){
-        return storeRepository.findAll();
-    }
-
-
     @Transactional(readOnly = true)
     public List<Store> showStoresByCountryAndRegionAndCityAndProvinceAndAddress(String country, String region, String city,String province, String address) {
         return storeRepository.advSearchByCountryAndRegionAndCityAndProvinceAndAddress(
@@ -97,7 +89,86 @@ public class StoreService {
                 Utilities.upperCase(city,false),
                 Utilities.upperCase(province,false),
                 Utilities.upperCase(address,false));
+    }//showStoresByCountryAndRegionAndCityAndProvinceAndAddress Utilizzato
 
+
+
+
+    /*
+        +++Methods for managing stored products+++
+    */
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED)
+    public StoredProduct addStoredProduct(StoredProduct storedProduct) throws StoredProductAlreadyExistException {
+        if(storedProductRepository.existsByStoreAndProduct(storedProduct.getStore(),storedProduct.getProduct()))
+            throw new StoredProductAlreadyExistException();
+        storedProduct=storedProductRepository.save(storedProduct);
+        return storedProduct;
+    }//addStoredProduct UTILIZZATO
+
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
+
+    public StoredProduct updateStoredProduct(Store store, Product product, Integer quantity, Double price) throws StoredProductNotExistException {
+        if(quantity==null && price==null){
+            throw new RuntimeException("Quantity and Price must not be null at the same time during an update");
+        }
+        StoredProduct currSP=storedProductRepository.findStoredProductByStoreAndProduct(store,product);
+        if(currSP==null){
+            throw new StoredProductNotExistException();
+        }
+        entityManager.lock(currSP,LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+        if(quantity!=null) currSP.setQuantity(quantity);
+        if(price!=null) currSP.setPrice(price);
+        return currSP;
+    }//updateStoredProduct Utilizzato
+
+
+
+
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW)
+    public StoredProduct removeStoredProduct(Store store,Product product) throws StoredProductNotExistException{
+        StoredProduct currStoredProduct=storedProductRepository.findStoredProductByStoreAndProduct(store,product);
+        if(currStoredProduct==null) throw new StoredProductNotExistException();
+        entityManager.lock(currStoredProduct,LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+        storedProductRepository.delete(currStoredProduct);
+        return currStoredProduct;
+    }//removeStoredProduct Utilizzato
+
+    @Transactional(readOnly = true)
+    public List<StoredProduct> showStoredProductsByStoreAndProductAndPriceAndQuantity(
+            Store store,
+            int product_id,
+            Double price,Integer quantity
+    ){
+        List<StoredProduct> result;
+        Product product= productRepository.findProductById(product_id);
+
+        System.out.println(product);
+        result=storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,product,price,quantity);
+
+
+        return result;
+    }//showSearchByStoreAndProductAndPriceAndQuantity
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+        NON UTILIZZATI
+     */
+
+    @Transactional(readOnly = true)
+    public List<Store> showAllStores(){
+        return storeRepository.findAll();
     }
 
     @Transactional(readOnly = true)
@@ -106,24 +177,6 @@ public class StoreService {
         if(store==null) throw new StoreNotExistException();
         return store;
     }
-
-
-    /*
-        +++Methods for managing stored products+++
-    */
-    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    public StoredProduct addStoredProduct(StoredProduct storedProduct) throws ProductNotExistException, StoreNotExistException, StoredProductAlreadyExistException {
-        //Verifichiamo che il product esista
-        if(!existProduct(storedProduct))
-            throw new ProductNotExistException();
-        if(!existStore(storedProduct))
-            throw new StoreNotExistException();
-        if(storedProductRepository.existsByStoreAndProduct(storedProduct.getStore(),storedProduct.getProduct()))
-            throw new StoredProductAlreadyExistException();
-
-        storedProduct=storedProductRepository.save(storedProduct);
-        return storedProduct;
-    }//addStoredProduct
 
     private boolean existProduct(StoredProduct storedProduct){
         Product product=storedProduct.getProduct();
@@ -158,7 +211,7 @@ public class StoreService {
             //La ricerca deve essere CaseInsensitive
             Utilities.adjustPropreties(store);
             Store tmp=storeRepository.findByCountryAndRegionAndCityAndProvinceAndAddress(
-                store.getCountry(),store.getRegion(),store.getCity(),store.getProvince(),store.getAddress()
+                    store.getCountry(),store.getRegion(),store.getCity(),store.getProvince(),store.getAddress()
             );
             if(tmp!=null) {
                 storedProduct.setStore(tmp);
@@ -168,16 +221,6 @@ public class StoreService {
         }
         return false;
     }//existStore
-
-    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW)
-    public StoredProduct removeStoredProduct(StoredProduct storedProduct) throws StoredProductNotExistException{
-        storedProduct=storedProductRepository.findStoredProductById(storedProduct.getId());
-        if(storedProduct==null) throw new StoredProductNotExistException();
-        storedProductRepository.delete(storedProduct);
-        return storedProduct;
-    }//removeStoredProduct
-
-
 
     @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public StoredProduct updateQuantityStoredProduct(StoredProduct storedProduct,Integer quantity) throws StoredProductNotExistException {
@@ -205,31 +248,11 @@ public class StoreService {
         return storedProduct;
     }
 
-
     @Transactional(readOnly = true)
     public List<StoredProduct> showStoredProductsByStore(Store store){
         store=storeRepository.findStoreById(store.getId());
         return store.getStoredProducts();
     }
-
-
-
-
-    @Transactional(readOnly = true)
-    public List<StoredProduct> showStoredProductsByStoreAndProductAndPriceAndQuantity(
-            Store store,
-            int product_id,
-            Double price,Integer quantity
-    ){
-        List<StoredProduct> result;
-        Product product= productRepository.findProductById(product_id);
-
-        System.out.println(product);
-        result=storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,product,price,quantity);
-
-
-        return result;
-    }//showSearchByStoreAndProductAndPriceAndQuantity
 
 
 

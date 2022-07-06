@@ -19,6 +19,8 @@ public interface StoredProductRepository extends JpaRepository<StoredProduct,Int
     StoredProduct findStoredProductById(int id);
     boolean existsByStoreAndProduct(Store store, Product product);
 
+    StoredProduct findStoredProductByStoreAndProduct(Store store,Product product);
+
 
     @Query("SELECT sp " +
             "FROM StoredProduct AS sp " +
