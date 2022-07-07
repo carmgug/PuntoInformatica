@@ -11,6 +11,7 @@ import it.carmelogug.puntoinformatica.support.Utilities;
 
 
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductIsBannedException;
+import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreIsBannedException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
@@ -76,8 +77,9 @@ public class StoreService {
         Store currStore=storeRepository.findStoreById(store.getId());
         if(currStore==null) throw new StoreNotExistException();
         if(currStore.getStoredProducts()!=null && currStore.getStoredProducts().size()>0)
-            entityManager.lock(store.getStoredProducts(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+
         for(StoredProduct sp:currStore.getStoredProducts()){
+            entityManager.lock(sp,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
             storedProductRepository.delete(sp);
         }
         currStore.setBanned(true);
@@ -109,7 +111,9 @@ public class StoreService {
         +++Methods for managing stored products+++
     */
     @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED)
-    public StoredProduct addStoredProduct(StoredProduct storedProduct) throws StoredProductAlreadyExistException, ProductIsBannedException, StoreIsBannedException {
+    public StoredProduct addStoredProduct(StoredProduct storedProduct) throws StoredProductAlreadyExistException, ProductIsBannedException, StoreIsBannedException, ProductNotExistException, StoreNotExistException {
+        if(storedProduct.getStore()==null) throw new StoreNotExistException();
+        if(storedProduct.getProduct()==null) throw new ProductNotExistException();
         if(storedProduct.getStore().isBanned()) throw new StoreIsBannedException();
         if(storedProduct.getProduct().isBanned()) throw new ProductIsBannedException();
 

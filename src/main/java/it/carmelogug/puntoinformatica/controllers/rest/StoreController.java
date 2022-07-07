@@ -8,6 +8,7 @@ import it.carmelogug.puntoinformatica.services.StoreService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
 
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductIsBannedException;
+import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreIsBannedException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
@@ -113,7 +114,8 @@ public class StoreController {
             addedProduct=storeService.addStoredProduct(addedProduct);
             return new ResponseEntity<>(new ResponseMessage("Product added successful to the Store!", addedProduct),HttpStatus.OK);
 
-        }catch (StoredProductAlreadyExistException | ProductIsBannedException | StoreIsBannedException e){
+        }catch (StoredProductAlreadyExistException | ProductIsBannedException | StoreIsBannedException | StoreNotExistException |
+                ProductNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
     }//addStoredProduct
@@ -137,7 +139,7 @@ public class StoreController {
         try{
 
             StoredProduct removedStoredProduct=storeService.removeStoredProduct(store,product);
-            return new ResponseEntity<>(new ResponseMessage("Product added successful to the Store!", removedStoredProduct),HttpStatus.OK);
+            return new ResponseEntity<>(new ResponseMessage("Product removed successful from the Store!", removedStoredProduct),HttpStatus.OK);
 
         }catch ( StoredProductNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);

@@ -35,13 +35,14 @@ public class ProductsController {
 
     @PostMapping
     public ResponseEntity create(@RequestBody @Valid Product product){
-        Product p;
+
         try{
-            p=productService.addProduct(product);
+            Product p=productService.addProduct(product);
+            return new ResponseEntity(new ResponseMessage("Added successful!",p),HttpStatus.OK);
         } catch (ProductAlreadyExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product already exist!",e);
         }
-        return new ResponseEntity(new ResponseMessage("Added successful!",p),HttpStatus.OK);
+
     }
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
@@ -73,40 +74,12 @@ public class ProductsController {
 
 
 
-    /*
-        Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
-        Restituisce i campi della classe e il messaggio di errore associato.
-     */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return errors;
-    }
+
 
     /*
         Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per il prodotto creato.
         Restituisce il tipo aspettato, il valore trasmesso, e i valori possibili.
      */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidFormatException.class)
-    public String handleInvalidFormatExceptions(InvalidFormatException ex) {
-        StringBuilder sb=new StringBuilder();
-        sb.append("Mapping failure on field:"+ ex.getPathReference()+"\n");
-        sb.append("Expected type: " + ex.getTargetType().getSimpleName()+"\n");
-        sb.append("Provided value: " + ex.getValue()+"\n");
-        sb.append("Expected values: [");
-        for(Object f:ex.getTargetType().getEnumConstants()){
-            sb.append(f.toString()+" ");
-        }
-        sb.append("]\n");
-        return sb.toString();
-    }
 
 
 
@@ -118,11 +91,6 @@ public class ProductsController {
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
-
-
-
-
-
 
     /*
         name: può essere null, se vuoto viene contato come null, se ha solo spazi non restituirà i nomi dei prodotti contenenti spazi
@@ -140,7 +108,7 @@ public class ProductsController {
         if(result.size()<=0){
             return new ResponseEntity<>(new ResponseMessage("No result!", result),HttpStatus.OK);
         }
-        return new ResponseEntity<>(new ResponseMessage("oK",result),HttpStatus.OK);
+        return new ResponseEntity<>(new ResponseMessage("Results found",result),HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
@@ -155,7 +123,43 @@ public class ProductsController {
         }
     }
 
+
+
     /*
+        NON UTILIZZATI
+     */
+    /*
+        Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
+        Restituisce i campi della classe e il messaggio di errore associato.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return errors;
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidFormatException.class)
+    public String handleInvalidFormatExceptions(InvalidFormatException ex) {
+        StringBuilder sb=new StringBuilder();
+        sb.append("Mapping failure on field:"+ ex.getPathReference()+"\n");
+        sb.append("Expected type: " + ex.getTargetType().getSimpleName()+"\n");
+        sb.append("Provided value: " + ex.getValue()+"\n");
+        sb.append("Expected values: [");
+        for(Object f:ex.getTargetType().getEnumConstants()){
+            sb.append(f.toString()+" ");
+        }
+        sb.append("]\n");
+        return sb.toString();
+    }
+
+     /*
         Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per la ricerca/eliminazione di un prodotto
         Restituisce il tipo aspettato, il valore trasmesso, e i valori possibili.
      */
@@ -176,6 +180,7 @@ public class ProductsController {
         return msg;
 
     }
+
 
 
 

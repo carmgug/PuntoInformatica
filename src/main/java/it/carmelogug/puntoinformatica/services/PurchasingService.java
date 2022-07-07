@@ -65,14 +65,15 @@ public class PurchasingService {
         if(cart.getStoredProductsInCart().size()==0) throw new CartIsEmptyException();
 
         entityManager.lock(cart,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        entityManager.lock(cart.getStoredProductsInCart(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 
         Purchase result=purchaseRepository.save(new Purchase());
         double totalPrice=0;
         for(StoredProductInCart currp: cart.getStoredProductsInCart()){
-            StoredProduct storedProduct=currp.getStoredProduct();
 
             entityManager.lock(currp,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            entityManager.lock(currp.getStoredProduct(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+
+            StoredProduct storedProduct=currp.getStoredProduct();
             int newQuantity=storedProduct.getQuantity()-currp.getQuantity();
 
             if ( newQuantity<0){
@@ -165,9 +166,9 @@ public class PurchasingService {
         if(currCart==null) throw new CartNotExistException();
 
         entityManager.lock(currCart,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        entityManager.lock(currCart.getStoredProductsInCart(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         StoredProductInCart addedElement=storedProductInCartRepository.findStoredProductInCartByCartAndStoredProduct(currCart,storedProduct);
         if(addedElement!=null) {
+            entityManager.lock(addedElement,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
             int newQuantity= addedElement.getQuantity()+quantity;
             addedElement.setQuantity(newQuantity);
         }
