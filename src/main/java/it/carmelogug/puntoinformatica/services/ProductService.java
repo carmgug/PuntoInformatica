@@ -38,8 +38,10 @@ public class ProductService {
 
 
 
+
+
     /*
-        Metodi per l'aggiunta e l'eleminazione dei prodotti
+        Metodi per l'aggiunta e l'eliminazione dei prodotti
      */
     @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Product addProduct(Product product) throws ProductAlreadyExistException {

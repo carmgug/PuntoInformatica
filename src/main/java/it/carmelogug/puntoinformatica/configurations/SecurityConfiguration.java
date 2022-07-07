@@ -26,7 +26,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter { //este
                 .antMatchers("/check/**").permitAll()
                 .antMatchers("/users/**").permitAll()
                 .antMatchers("/products/**").permitAll()
-                .antMatchers("/purchases/**").permitAll()
+                .antMatchers("/purchasing/**").permitAll()
+                .antMatchers("/stores/**").permitAll()
                 .anyRequest().authenticated().and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(new JwtAuthenticationConverter());
     }
 
