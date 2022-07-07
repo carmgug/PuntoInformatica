@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 import java.util.Date;
 import java.util.List;
 
@@ -37,32 +36,6 @@ public class PurchasingController {
         Metodi per la gestione degli acquisti.
      */
 
-    /* Metodo da eliminare
-    @PostMapping("/purchase")
-    public ResponseEntity createPurchase(@RequestBody @Valid Purchase purchase){
-        try{
-            Purchase result=purchasingService.addPurchase(purchase);
-            return new ResponseEntity(new ResponseMessage(
-                    "Purchase order has been added!",result)
-                    ,HttpStatus.OK);
-        }catch (QuantityProductUnvailableException | StoredProductNotExistException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
-        }
-    }
-    */
-
-
-
-
-
-
-
-    /*
-        Metodi per la gestione del carrello
-     */
-
-
-
 
     @PostMapping("/cart")
     public ResponseEntity createCart(@PathVariable (value = "user") User user){
@@ -72,7 +45,7 @@ public class PurchasingController {
         }catch (UserNotFoundException | CartAlreadyExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }
+    }//createCart
 
     /*
         Metodi utilizzati dal frontEnd
@@ -84,11 +57,11 @@ public class PurchasingController {
         try{
             if(quantity==0) throw new QuantityWrongException();
             Cart cart = purchasingService.addStoredProductToCart(Utils.getEmail(),storedProduct,quantity);
-            return new ResponseEntity(new ResponseMessage("StoredProduct added successfully!",cart),HttpStatus.OK);
+            return new ResponseEntity(new ResponseMessage("Product added successfully!",cart),HttpStatus.OK);
         }catch (UserNotFoundException | CartNotExistException | StoredProductNotExistException | QuantityWrongException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }
+    }//addStoredProductToCart
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @PutMapping("/cart/my_cart/modifyQuantityStoredProductInCart")
@@ -97,12 +70,12 @@ public class PurchasingController {
         try{
             if(quantity<0) throw new QuantityWrongException();
             System.out.println(quantity);
-            Cart cart = purchasingService.modifyquantityStoredProductInCart(storedProductInCart,quantity);
+            Cart cart = purchasingService.updateQuantityStoredProductInCart(storedProductInCart,quantity);
             return new ResponseEntity(new ResponseMessage("Product updated successfully!",cart),HttpStatus.OK);
         }catch ( StoredProductNotInCart| QuantityWrongException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }
+    }//modifyQuantityStoredProduct
 
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
@@ -116,7 +89,7 @@ public class PurchasingController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
 
-    }
+    }//removeStoredProductFromCart
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/cart/my_cart")
@@ -126,11 +99,11 @@ public class PurchasingController {
             if(cart.getStoredProductsInCart().size()<=0){
                 return new ResponseEntity(new ResponseMessage("The cart is empty!",cart),HttpStatus.OK);
             }
-            return new ResponseEntity(new ResponseMessage("ok",cart),HttpStatus.OK);
+            return new ResponseEntity(new ResponseMessage("The request has been processed",cart),HttpStatus.OK);
         }catch (CartNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }
+    }//getCartByUser
 
 
     /*
@@ -152,7 +125,7 @@ public class PurchasingController {
         }catch(UserNotFoundException | DateWrongRangeException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }
+    }//getPurchaseInPeriod
 
     @PostMapping("/purchase/{cart}")
     public ResponseEntity createPurchase(@PathVariable(value = "cart") Cart cart) {
@@ -164,7 +137,7 @@ public class PurchasingController {
         }catch (QuantityProductUnvailableException | CartIsEmptyException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }
+    }//createPurchase
 
 
 }

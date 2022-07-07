@@ -7,8 +7,8 @@ import it.carmelogug.puntoinformatica.repositories.ProductRepository;
 import it.carmelogug.puntoinformatica.repositories.StoredProductRepository;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductNotExistException;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,19 +21,27 @@ import java.util.List;
 
 @Service
 public class ProductService {
-    @Autowired
+
     private ProductRepository productRepository;
 
-    @Autowired
+
     private StoredProductRepository storedProductRepository;
+
+    @Autowired
+    public ProductService(ProductRepository productRepository, StoredProductRepository storedProductRepository) {
+        this.productRepository = productRepository;
+        this.storedProductRepository = storedProductRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
 
+
+
     /*
         Metodi per l'aggiunta e l'eleminazione dei prodotti
      */
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Product addProduct(Product product) throws ProductAlreadyExistException {
         if (productRepository.existsByBarCodeAndTypeAndCategory(product.getBarCode(),product.getType(),product.getCategory())){
             throw new ProductAlreadyExistException();
@@ -54,7 +62,7 @@ public class ProductService {
         return currProduct; //ritorno l'oggetto rimosso
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED)
     public Product unBanProduct(Product product) throws ProductNotExistException {
         Product currProduct = entityManager.find(Product.class,product.getId());
         if(currProduct==null) throw new ProductNotExistException();

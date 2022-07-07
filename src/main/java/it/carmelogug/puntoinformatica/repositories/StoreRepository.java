@@ -28,7 +28,6 @@ public interface StoreRepository extends JpaRepository<Store,Integer> {
             String country, String region,
             String city, String province, String address);
 
-
     boolean existsByCountryAndRegionAndCityAndProvinceAndAddress(
             String country, String region, String city, String province, String address);
 }

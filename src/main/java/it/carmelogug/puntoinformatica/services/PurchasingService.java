@@ -29,27 +29,39 @@ public class PurchasingService {
 
 
 
-    @Autowired
+
     private PurchaseRepository purchaseRepository;
-    @Autowired
+
     private ProductInPurchaseRepository productInPurchaseRepository;
-    @Autowired
+
     private CartRepository cartRepository;
 
-    @Autowired
+
     private UserRepository userRepository;
 
-    @Autowired
+
     private StoredProductInCartRepository storedProductInCartRepository;
+
+    @Autowired
+    public PurchasingService(PurchaseRepository purchaseRepository, ProductInPurchaseRepository productInPurchaseRepository,
+                             CartRepository cartRepository, UserRepository userRepository, StoredProductInCartRepository storedProductInCartRepository){
+        this.purchaseRepository = purchaseRepository;
+        this.productInPurchaseRepository = productInPurchaseRepository;
+        this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
+        this.storedProductInCartRepository = storedProductInCartRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
 
-
+    /*
+        Gestione acquisti
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
     public Purchase addPurchase(Cart cart) throws QuantityProductUnvailableException, CartIsEmptyException {
         entityManager.refresh(cart);
-        entityManager.lock(cart,LockModeType.PESSIMISTIC_WRITE);
+        entityManager.lock(cart,LockModeType.OPTIMISTIC);
         if(cart.getStoredProductsInCart().size()==0) throw new CartIsEmptyException();
 
         Purchase result=purchaseRepository.save(new Purchase());
@@ -87,14 +99,8 @@ public class PurchasingService {
         return result;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<Purchase> getPurchasesByUserInPeriod(String email, Date startDate, Date endDate) throws UserNotFoundException, DateWrongRangeException {
-
-
-
-        if(startDate==null) startDate=new Date(0); //1970-01-01
-        if(endDate==null) endDate=new Date(System.currentTimeMillis());
-
 
         if(endDate!=null) {
             Calendar c=Calendar.getInstance();
@@ -104,8 +110,11 @@ public class PurchasingService {
             c.set(Calendar.HOUR_OF_DAY, 23);
             endDate=c.getTime();
         }
-        if(startDate.after(endDate)) throw new DateWrongRangeException();
 
+        if(startDate==null) startDate=new Date(0); //1970-01-01
+        if(endDate==null) endDate=new Date(System.currentTimeMillis());
+
+        if(startDate.after(endDate)) throw new DateWrongRangeException();
 
 
         User currUser=userRepository.findUserByEmail(email);
@@ -120,7 +129,7 @@ public class PurchasingService {
         Gestione Carrello
      */
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Cart addCart(User user) throws UserNotFoundException, CartAlreadyExistException {
         User currUser=entityManager.find(User.class,user.getId());
         if(currUser==null) throw new UserNotFoundException();
@@ -131,7 +140,7 @@ public class PurchasingService {
         cart=cartRepository.save(cart);
         return cart;
     }
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Cart getCart(String email) throws CartNotExistException {
         User currUser=userRepository.findUserByEmail(email);
         Cart currCart=cartRepository.findCartByBuyer(currUser);
@@ -141,7 +150,7 @@ public class PurchasingService {
     }
 
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Cart addStoredProductToCart(String email,StoredProduct storedProduct,int quantity) throws UserNotFoundException, StoredProductNotExistException, CartNotExistException {
 
         User currUser=userRepository.findUserByEmail(email);
@@ -182,7 +191,7 @@ public class PurchasingService {
     }
 
 
-    public Cart modifyquantityStoredProductInCart( StoredProductInCart storedProductInCart, int quantity) throws StoredProductNotInCart {
+    public Cart updateQuantityStoredProductInCart(StoredProductInCart storedProductInCart, int quantity) throws StoredProductNotInCart {
         StoredProductInCart spic=storedProductInCartRepository.findStoredProductInCartById(storedProductInCart.getId());
         if(storedProductInCart==null) throw new StoredProductNotInCart();
         spic.setQuantity(quantity);

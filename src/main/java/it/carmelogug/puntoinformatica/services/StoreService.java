@@ -31,24 +31,32 @@ import java.util.List;
 @Service
 public class StoreService {
 
-    @Autowired
+
     private StoreRepository storeRepository;
 
-    @Autowired
+
     private StoredProductRepository storedProductRepository;
 
-    @Autowired
+
     private ProductRepository productRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
 
+    @Autowired
+    public StoreService(StoreRepository storeRepository, StoredProductRepository storedProductRepository, ProductRepository productRepository) {
+        this.storeRepository = storeRepository;
+        this.storedProductRepository = storedProductRepository;
+        this.productRepository = productRepository;
+    }
+
+
     /*
         +++Methods for managing stores+++
     */
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Store addStore(Store store) throws StoreAlreadyExistException{
         Utilities.adjustPropreties(store);
         if(storeRepository.existsByCountryAndRegionAndCityAndProvinceAndAddress(
@@ -66,7 +74,7 @@ public class StoreService {
         Store currStore=storeRepository.findStoreById(store.getId());
         if(currStore==null) throw new StoreNotExistException();
         for(StoredProduct sp:currStore.getStoredProducts()){
-            entityManager.lock(sp,LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+            entityManager.lock(sp,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
             storedProductRepository.delete(sp);
         }
         currStore.setBanned(true);
@@ -81,7 +89,7 @@ public class StoreService {
         return currStore;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<Store> showStoresByCountryAndRegionAndCityAndProvinceAndAddress(String country, String region, String city,String province, String address) {
         return storeRepository.advSearchByCountryAndRegionAndCityAndProvinceAndAddress(
                 Utilities.upperCase(country,false),
@@ -89,7 +97,7 @@ public class StoreService {
                 Utilities.upperCase(city,false),
                 Utilities.upperCase(province,false),
                 Utilities.upperCase(address,false));
-    }//showStoresByCountryAndRegionAndCityAndProvinceAndAddress Utilizzato
+    }//showStoresByCountryAndRegionAndCityAndProvinceAndAddress
 
 
 
@@ -103,10 +111,10 @@ public class StoreService {
             throw new StoredProductAlreadyExistException();
         storedProduct=storedProductRepository.save(storedProduct);
         return storedProduct;
-    }//addStoredProduct UTILIZZATO
+    }//addStoredProduct
+
 
     @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-
     public StoredProduct updateStoredProduct(Store store, Product product, Integer quantity, Double price) throws StoredProductNotExistException {
         if(quantity==null && price==null){
             throw new RuntimeException("Quantity and Price must not be null at the same time during an update");
@@ -115,11 +123,11 @@ public class StoreService {
         if(currSP==null){
             throw new StoredProductNotExistException();
         }
-        entityManager.lock(currSP,LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(currSP,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         if(quantity!=null) currSP.setQuantity(quantity);
         if(price!=null) currSP.setPrice(price);
         return currSP;
-    }//updateStoredProduct Utilizzato
+    }//updateStoredProduct
 
 
 
@@ -128,12 +136,15 @@ public class StoreService {
     public StoredProduct removeStoredProduct(Store store,Product product) throws StoredProductNotExistException{
         StoredProduct currStoredProduct=storedProductRepository.findStoredProductByStoreAndProduct(store,product);
         if(currStoredProduct==null) throw new StoredProductNotExistException();
-        entityManager.lock(currStoredProduct,LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(currStoredProduct,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         storedProductRepository.delete(currStoredProduct);
         return currStoredProduct;
-    }//removeStoredProduct Utilizzato
+    }//removeStoredProduct
 
-    @Transactional(readOnly = true)
+
+
+
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<StoredProduct> showStoredProductsByStoreAndProductAndPriceAndQuantity(
             Store store,
             int product_id,
@@ -145,18 +156,8 @@ public class StoreService {
         System.out.println(product);
         result=storedProductRepository.advSearchByStoreAndProductAndPriceAndQuantity(store,product,price,quantity);
 
-
         return result;
     }//showSearchByStoreAndProductAndPriceAndQuantity
-
-
-
-
-
-
-
-
-
 
 
 
@@ -176,76 +177,6 @@ public class StoreService {
         Store store=storeRepository.findStoreById(storeID);
         if(store==null) throw new StoreNotExistException();
         return store;
-    }
-
-    private boolean existProduct(StoredProduct storedProduct){
-        Product product=storedProduct.getProduct();
-
-        //se mi è stato fornito l'id in input utilizzo quello per verificare l'esistenza del prodotto.
-        if(product.getId()!=null && productRepository.existsById(product.getId()) ){
-            return true;
-        }
-        //se non mi è stato fornito l'id e se la ricerca precedente ha fallito allora effettuo la ricerca
-        //per barCode tipo e categoria
-        else if (product.getBarCode()!=null && product.getType()!= null && product.getCategory()!=null){
-            Product tmp=productRepository.getProductByBarCodeAndTypeAndCategory(product.getBarCode(),product.getType(),product.getCategory());
-            if(tmp!=null){ //Il product in input esiste
-                storedProduct.setProduct(tmp);
-                return true;
-            }
-            return false;
-        }
-        //se non mi è stato passato nessuno dei parametri precedenti allora restituisco false
-        return false;
-    }//existProduct
-
-    private boolean existStore( StoredProduct storedProduct){
-        Store store=storedProduct.getStore();
-        if(store.getId()!=null && storeRepository.existsById(store.getId())){
-            return true;
-        }
-        //Se non mi è stato fornito l'id e se la ricerca precedente ha fallito allora effettuo la ricerca
-        //Per country,region,city,province e address (che insieme identificano un negozio)
-        else if(store.getCountry()!=null && store.getRegion()!= null &&
-                store.getCity()!=null && store.getProvince()!=null && store.getAddress()!=null){
-            //La ricerca deve essere CaseInsensitive
-            Utilities.adjustPropreties(store);
-            Store tmp=storeRepository.findByCountryAndRegionAndCityAndProvinceAndAddress(
-                    store.getCountry(),store.getRegion(),store.getCity(),store.getProvince(),store.getAddress()
-            );
-            if(tmp!=null) {
-                storedProduct.setStore(tmp);
-                return true;
-            }
-            return false;
-        }
-        return false;
-    }//existStore
-
-    @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
-    public StoredProduct updateQuantityStoredProduct(StoredProduct storedProduct,Integer quantity) throws StoredProductNotExistException {
-
-
-        storedProduct=entityManager.find(StoredProduct.class,storedProduct.getId());
-        if(storedProduct==null) throw new StoredProductNotExistException();
-
-        entityManager.lock(storedProduct,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        storedProduct.setQuantity(storedProduct.getQuantity()+quantity);
-        storedProductRepository.save(storedProduct);
-
-        return storedProduct;
-    }
-
-    @Transactional(readOnly = false,propagation = Propagation.REQUIRES_NEW,isolation = Isolation.READ_COMMITTED)
-    public StoredProduct updatePriceStoredProduct(StoredProduct storedProduct,Double price) throws StoredProductNotExistException{
-        storedProduct=entityManager.find(StoredProduct.class,storedProduct.getId());
-        if(storedProduct==null) throw new StoredProductNotExistException();
-
-        entityManager.lock(storedProduct,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        storedProduct.setPrice(price);
-        storedProductRepository.save(storedProduct);
-
-        return storedProduct;
     }
 
     @Transactional(readOnly = true)

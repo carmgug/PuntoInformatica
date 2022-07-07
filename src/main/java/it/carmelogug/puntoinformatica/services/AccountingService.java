@@ -6,25 +6,24 @@ import it.carmelogug.puntoinformatica.repositories.CartRepository;
 import it.carmelogug.puntoinformatica.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 @Service
 public class AccountingService {
 
-    @Autowired
+
     private UserRepository userRepository;
 
-    @Autowired
+
     private CartRepository cartRepository;
+    @Autowired
+    public AccountingService(UserRepository userRepository, CartRepository cartRepository){
+        this.userRepository = userRepository;
+        this.cartRepository = cartRepository;
+    }
 
-
-
-
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation= Isolation.READ_COMMITTED)
     public User addAndgetUser(String email,String first_name,String last_name,String phonenumber){
         User user=userRepository.findUserByEmail(email);
         if(user==null){
