@@ -58,19 +58,21 @@ public class PurchasingService {
     /*
         Gestione acquisti
      */
-    @Transactional(isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW, rollbackFor = QuantityProductUnvailableException.class)
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = QuantityProductUnvailableException.class)
     public Purchase addPurchase(Cart cart) throws QuantityProductUnvailableException, CartIsEmptyException {
         entityManager.refresh(cart);
-        entityManager.lock(cart,LockModeType.OPTIMISTIC);
+
         if(cart.getStoredProductsInCart().size()==0) throw new CartIsEmptyException();
+
+        entityManager.lock(cart,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(cart.getStoredProductsInCart(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 
         Purchase result=purchaseRepository.save(new Purchase());
         double totalPrice=0;
         for(StoredProductInCart currp: cart.getStoredProductsInCart()){
             StoredProduct storedProduct=currp.getStoredProduct();
 
-            entityManager.lock(storedProduct, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-
+            entityManager.lock(currp,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
             int newQuantity=storedProduct.getQuantity()-currp.getQuantity();
 
             if ( newQuantity<0){
@@ -162,7 +164,8 @@ public class PurchasingService {
         Cart currCart=cartRepository.findCartByBuyer(currUser);
         if(currCart==null) throw new CartNotExistException();
 
-
+        entityManager.lock(currCart,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(currCart.getStoredProductsInCart(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         StoredProductInCart addedElement=storedProductInCartRepository.findStoredProductInCartByCartAndStoredProduct(currCart,storedProduct);
         if(addedElement!=null) {
             int newQuantity= addedElement.getQuantity()+quantity;
@@ -179,10 +182,12 @@ public class PurchasingService {
         return currCart;
     }
 
-    @Transactional(readOnly = false)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Cart removeStoredProductFromCart(String email,StoredProductInCart storedProductInCart) throws CartNotExistException, StoredProductNotInCart {
         StoredProductInCart spic=storedProductInCartRepository.findStoredProductInCartById(storedProductInCart.getId());
         if(storedProductInCart==null) throw new StoredProductNotInCart();
+        entityManager.lock(spic.getCart(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(spic,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         storedProductInCartRepository.delete(spic);
         //restituisco il carrello aggiornato
         User currUser=userRepository.findUserByEmail(email);
@@ -191,9 +196,12 @@ public class PurchasingService {
     }
 
 
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Cart updateQuantityStoredProductInCart(StoredProductInCart storedProductInCart, int quantity) throws StoredProductNotInCart {
         StoredProductInCart spic=storedProductInCartRepository.findStoredProductInCartById(storedProductInCart.getId());
         if(storedProductInCart==null) throw new StoredProductNotInCart();
+        entityManager.lock(spic.getCart(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(spic,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         spic.setQuantity(quantity);
         spic=storedProductInCartRepository.save(spic);
         return spic.getCart();

@@ -7,7 +7,9 @@ import it.carmelogug.puntoinformatica.entities.store.StoredProduct;
 import it.carmelogug.puntoinformatica.services.StoreService;
 import it.carmelogug.puntoinformatica.support.ResponseMessage;
 
+import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductIsBannedException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExistException;
+import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreIsBannedException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductNotExistException;
@@ -111,7 +113,7 @@ public class StoreController {
             addedProduct=storeService.addStoredProduct(addedProduct);
             return new ResponseEntity<>(new ResponseMessage("Product added successful to the Store!", addedProduct),HttpStatus.OK);
 
-        }catch ( StoredProductAlreadyExistException e){
+        }catch (StoredProductAlreadyExistException | ProductIsBannedException | StoreIsBannedException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
     }//addStoredProduct

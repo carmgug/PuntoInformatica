@@ -29,6 +29,11 @@ public class StoredProductInCart {
     @ToString.Exclude
     private Cart cart;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    @JsonIgnore
+    private long version;
+
     @ManyToOne
     @JoinColumn(name="stored_product")
     private StoredProduct storedProduct;

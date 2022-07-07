@@ -56,8 +56,12 @@ public class ProductService {
     public Product banProduct(Product product) throws ProductNotExistException{
         Product currProduct = entityManager.find(Product.class,product.getId());
         if(currProduct==null) throw new ProductNotExistException();
+
+
+        if(product.getStoredProducts()!=null && product.getStoredProducts().size()>0)
+            entityManager.lock(product.getStoredProducts(), LockModeType.PESSIMISTIC_FORCE_INCREMENT);
+
         for(StoredProduct sp:currProduct.getStoredProducts()){
-            entityManager.lock(sp, LockModeType.PESSIMISTIC_FORCE_INCREMENT);
             storedProductRepository.delete(sp);
         }
         currProduct.setBanned(true);

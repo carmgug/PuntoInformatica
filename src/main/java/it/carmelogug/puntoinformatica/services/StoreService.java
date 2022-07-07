@@ -10,7 +10,9 @@ import it.carmelogug.puntoinformatica.repositories.StoredProductRepository;
 import it.carmelogug.puntoinformatica.support.Utilities;
 
 
+import it.carmelogug.puntoinformatica.support.exceptions.Product.ProductIsBannedException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreAlreadyExistException;
+import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreIsBannedException;
 import it.carmelogug.puntoinformatica.support.exceptions.Store.StoreNotExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductAlreadyExistException;
 import it.carmelogug.puntoinformatica.support.exceptions.StoredProduct.StoredProductNotExistException;
@@ -69,12 +71,13 @@ public class StoreService {
         return store;
     }
 
-    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = false, isolation = Isolation.READ_COMMITTED)
     public Store banStore(Store store) throws StoreNotExistException {
         Store currStore=storeRepository.findStoreById(store.getId());
         if(currStore==null) throw new StoreNotExistException();
+        if(currStore.getStoredProducts()!=null && currStore.getStoredProducts().size()>0)
+            entityManager.lock(store.getStoredProducts(),LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         for(StoredProduct sp:currStore.getStoredProducts()){
-            entityManager.lock(sp,LockModeType.OPTIMISTIC_FORCE_INCREMENT);
             storedProductRepository.delete(sp);
         }
         currStore.setBanned(true);
@@ -106,7 +109,10 @@ public class StoreService {
         +++Methods for managing stored products+++
     */
     @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED)
-    public StoredProduct addStoredProduct(StoredProduct storedProduct) throws StoredProductAlreadyExistException {
+    public StoredProduct addStoredProduct(StoredProduct storedProduct) throws StoredProductAlreadyExistException, ProductIsBannedException, StoreIsBannedException {
+        if(storedProduct.getStore().isBanned()) throw new StoreIsBannedException();
+        if(storedProduct.getProduct().isBanned()) throw new ProductIsBannedException();
+
         if(storedProductRepository.existsByStoreAndProduct(storedProduct.getStore(),storedProduct.getProduct()))
             throw new StoredProductAlreadyExistException();
         storedProduct=storedProductRepository.save(storedProduct);
@@ -114,7 +120,7 @@ public class StoreService {
     }//addStoredProduct
 
 
-    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED)
     public StoredProduct updateStoredProduct(Store store, Product product, Integer quantity, Double price) throws StoredProductNotExistException {
         if(quantity==null && price==null){
             throw new RuntimeException("Quantity and Price must not be null at the same time during an update");
@@ -132,7 +138,7 @@ public class StoreService {
 
 
 
-    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED,propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = false,isolation = Isolation.READ_COMMITTED)
     public StoredProduct removeStoredProduct(Store store,Product product) throws StoredProductNotExistException{
         StoredProduct currStoredProduct=storedProductRepository.findStoredProductByStoreAndProduct(store,product);
         if(currStoredProduct==null) throw new StoredProductNotExistException();

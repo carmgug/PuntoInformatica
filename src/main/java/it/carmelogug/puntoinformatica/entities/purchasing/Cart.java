@@ -1,6 +1,7 @@
 package it.carmelogug.puntoinformatica.entities.purchasing;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.carmelogug.puntoinformatica.entities.User;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,8 +25,12 @@ public class Cart {
     @JoinColumn(name="buyer")
     private User buyer;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    @JsonIgnore
+    private long version;
 
-    @OneToMany(mappedBy = "cart",cascade = CascadeType.MERGE,orphanRemoval = true)
+    @OneToMany(mappedBy = "cart",cascade = {CascadeType.MERGE,CascadeType.REMOVE},orphanRemoval = true)
     private List<StoredProductInCart> storedProductsInCart;
 
 }
