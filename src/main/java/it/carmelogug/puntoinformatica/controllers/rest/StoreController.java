@@ -39,7 +39,7 @@ public class StoreController {
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PostMapping
-    public ResponseEntity create(@RequestBody @Valid Store store){
+    public ResponseEntity createStore(@RequestBody @Valid Store store){
         try{
             Store createdStore=storeService.addStore(store);
             return new ResponseEntity(new ResponseMessage("Store added successful!",createdStore),HttpStatus.OK);
@@ -62,7 +62,7 @@ public class StoreController {
         }catch (StoreNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Store not exist!",e);
         }
-    }//delete
+    }//banStore
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PutMapping("/{store}")
@@ -73,7 +73,7 @@ public class StoreController {
         }catch (StoreNotExistException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Store not exist!",e);
         }
-    }//delete
+    }//unBanStore
 
 
 
@@ -130,7 +130,7 @@ public class StoreController {
         }catch ( StoredProductNotExistException | RuntimeException e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage(),e);
         }
-    }//addStoredProduct
+    }//updateStoredProduct
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @DeleteMapping("/{store}/{product}")
@@ -149,7 +149,7 @@ public class StoreController {
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/storedProducts/search/getByvarParams")
-    public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
+    public ResponseEntity getByStoreAndProductAndPriceAndAvailable(
             @RequestBody(required = false) Store store,
             @RequestParam(required = true) int product_id,
             @RequestParam(required = false) Double price, @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable){
@@ -160,98 +160,5 @@ public class StoreController {
         }
         return new ResponseEntity<>(new ResponseMessage("StoredProducts found!",result),HttpStatus.OK);
     }//getByStoreAndProductAndPriceAndAvaible
-
-
-
-    /*
-        OLD VERSION METODI DA ELIMINARE
-        @PutMapping("/storedProducts/addQuantity")
-    public ResponseEntity addQuantityToStoredProduct(
-            @RequestBody StoredProduct storedProduct,
-            @RequestParam @Positive(message = "added quantity must be positive") Integer quantity){
-        StoredProduct updatedProduct;
-        try {
-            updatedProduct=storeService.updateQuantityStoredProduct(storedProduct,quantity);
-        }catch (StoredProductNotExistException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"This product doesnt exist!");
-        }
-
-
-        return new ResponseEntity(new ResponseMessage("Product quantity has been modifided!",updatedProduct),HttpStatus.OK);
-    }
-
-    @PutMapping("/storedProducts/modifyPrice")
-    public ResponseEntity modifyPriceToStoredProduct(
-            @RequestBody StoredProduct storedProduct,
-            @RequestParam @Positive(message = "Price must be positive") Double price){
-        StoredProduct updatedProduct;
-        try {
-            updatedProduct=storeService.updatePriceStoredProduct(storedProduct,price);
-        }catch (StoredProductNotExistException e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"This product doesnt exist!");
-        }
-
-
-        return new ResponseEntity(new ResponseMessage("Product price has been modifided!",updatedProduct),HttpStatus.OK);
-    }
-
-        @GetMapping("/getAll")
-    public ResponseEntity getAll(){
-        List<Store> result= storeService.showAllStores();
-        if(result.size()==0){
-            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
-        }
-        return new ResponseEntity<>(result,HttpStatus.OK);
-    }//getAll
-
-        Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
-        Restituisce i campi della classe e il messaggio di errore associato.
-
-        @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return errors;
-    }
-
-
-
-
-
-        @GetMapping("/storedProducts/search/getByvarParams")
-    public ResponseEntity getByStoreAndProductAndPriceAndAvaible(
-            @RequestBody Store store,
-            @RequestParam(required = false) String name,@RequestParam(required = false) Product.Type type, Product.Category category,
-            @RequestParam(required = false) Double price, @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable){
-
-        name=Utilities.upperCase(name,true);
-        List<StoredProduct> result=storeService.showStoredProductsByStoreAndProductAndPriceAndQuantity(
-                store,
-                name,type,category, //info sul prodotto
-                price,(onlyAvailable) ? 0 :  null //info sullo store product
-        );
-        if(result.size()==0){
-            return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
-        }
-        return new ResponseEntity<>(result,HttpStatus.OK);
-    }
-     */
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

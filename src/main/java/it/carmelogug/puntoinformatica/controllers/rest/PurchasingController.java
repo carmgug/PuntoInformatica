@@ -36,7 +36,7 @@ public class PurchasingController {
         Metodi per la gestione degli acquisti.
      */
 
-
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PostMapping("/cart")
     public ResponseEntity createCart(@PathVariable (value = "user") User user){
         try {
@@ -91,6 +91,7 @@ public class PurchasingController {
 
     }//removeStoredProductFromCart
 
+
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/cart/my_cart")
     public ResponseEntity getCartByUser() {
@@ -127,6 +128,7 @@ public class PurchasingController {
         }
     }//getPurchaseInPeriod
 
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @PostMapping("/purchase/{cart}")
     public ResponseEntity createPurchase(@PathVariable(value = "cart") Cart cart) {
         try{

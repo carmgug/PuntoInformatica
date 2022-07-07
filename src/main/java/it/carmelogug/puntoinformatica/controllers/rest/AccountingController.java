@@ -30,8 +30,8 @@ public class AccountingController {
         Quindi verifico che sia autorizzato e restituisco l'utente sul db se esiste
         se non esiste lo creo e lo restituisco.
      */
-    @GetMapping("/logged")
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
+    @GetMapping("/logged")
     public ResponseEntity checkLogged() {
         System.out.println("sono loggato");
 
@@ -39,9 +39,7 @@ public class AccountingController {
         String[] name=Utils.getName();
         String first_name=name[0];
         String last_name=name[1];
-        //TODO
-        String phonenumber=null;
-        User currUser=accountingService.addAndgetUser(email,first_name,last_name,phonenumber);
+        User currUser=accountingService.addAndgetUser(email,first_name,last_name);
         return new ResponseEntity(new ResponseMessage("You are logged",currUser),HttpStatus.OK);
     }
 

@@ -45,9 +45,6 @@ public class User {
     @Column(name="email",nullable = false,unique = true)
     private String email;
 
-    @Basic
-    @Column(name="phone_number")
-    private String phoneNumber;
 
     @OneToMany(mappedBy = "buyer", cascade = CascadeType.MERGE,orphanRemoval = true)
     @JsonIgnore
@@ -58,11 +55,10 @@ public class User {
     private Cart cart;
 
     //costruttori
-    public User(String email,String firstName,String lastName,String phoneNumber){
+    public User(String email,String firstName,String lastName){
         this.email=email;
         this.firstName=firstName;
         this.lastName=lastName;
-        this.phoneNumber=phoneNumber;
     }
     public User(){}
 

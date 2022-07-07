@@ -32,7 +32,7 @@ public class ProductsController {
     @Autowired
     private ProductService productService;
 
-
+    @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PostMapping
     public ResponseEntity create(@RequestBody @Valid Product product){
 
@@ -43,7 +43,7 @@ public class ProductsController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product already exist!",e);
         }
 
-    }
+    }//create
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @DeleteMapping("/{product}")
@@ -56,7 +56,7 @@ public class ProductsController {
         }catch (ProductNotExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!", e);
         }
-    }
+    }//banProduct
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PutMapping("/{product}")
@@ -69,20 +69,17 @@ public class ProductsController {
         }catch (ProductNotExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Product not exist!", e);
         }
-    }
+    }//unBanProduct
 
 
 
 
 
 
-    /*
-        Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per il prodotto creato.
-        Restituisce il tipo aspettato, il valore trasmesso, e i valori possibili.
-     */
 
 
 
+    @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/getAll")
     public ResponseEntity getAll(){
         List<Product> result= productService.showAllProducts();
@@ -90,7 +87,7 @@ public class ProductsController {
             return new ResponseEntity<>(new ResponseMessage("No result!"),HttpStatus.OK);
         }
         return new ResponseEntity<>(result,HttpStatus.OK);
-    }
+    }//getAll
 
     /*
         name: può essere null, se vuoto viene contato come null, se ha solo spazi non restituirà i nomi dei prodotti contenenti spazi
@@ -109,7 +106,7 @@ public class ProductsController {
             return new ResponseEntity<>(new ResponseMessage("No result!", result),HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseMessage("Results found",result),HttpStatus.OK);
-    }
+    }//getByNameAndTypeAndCategory
 
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/search/by_id")
@@ -121,69 +118,6 @@ public class ProductsController {
         }catch (ProductNotExistException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not exist!", e);
         }
-    }
-
-
-
-    /*
-        NON UTILIZZATI
-     */
-    /*
-        Handler per gestire i casi in cui è stato passato un oggetto non conforme ai vincoli esplicitati.
-        Restituisce i campi della classe e il messaggio di errore associato.
-     */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return errors;
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidFormatException.class)
-    public String handleInvalidFormatExceptions(InvalidFormatException ex) {
-        StringBuilder sb=new StringBuilder();
-        sb.append("Mapping failure on field:"+ ex.getPathReference()+"\n");
-        sb.append("Expected type: " + ex.getTargetType().getSimpleName()+"\n");
-        sb.append("Provided value: " + ex.getValue()+"\n");
-        sb.append("Expected values: [");
-        for(Object f:ex.getTargetType().getEnumConstants()){
-            sb.append(f.toString()+" ");
-        }
-        sb.append("]\n");
-        return sb.toString();
-    }
-
-     /*
-        Handler per gestire casi in cui viene passato un tipo o una categoria non esistente per la ricerca/eliminazione di un prodotto
-        Restituisce il tipo aspettato, il valore trasmesso, e i valori possibili.
-     */
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ConversionFailedException.class)
-    public String handleConversionFailedException(ConversionFailedException ex) {
-        StringBuilder sb=new StringBuilder();
-        sb.append("Expected type: " + ex.getTargetType().getType().getSimpleName()+"\n");
-        sb.append("Provided value: " + ex.getValue()+"\n");
-        sb.append("Expected values: [");
-        for(Object f:ex.getTargetType().getType().getEnumConstants()){
-            sb.append(f.toString()+" ");
-        }
-        sb.append("]\n");
-        String msg=sb.toString();
-
-        return msg;
-
-    }
-
-
-
-
-
+    }//getById
 
 }

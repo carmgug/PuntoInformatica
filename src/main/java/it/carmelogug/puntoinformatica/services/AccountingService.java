@@ -24,10 +24,10 @@ public class AccountingService {
     }
 
     @Transactional(readOnly = false, isolation= Isolation.READ_COMMITTED)
-    public User addAndgetUser(String email,String first_name,String last_name,String phonenumber){
+    public User addAndgetUser(String email,String first_name,String last_name){
         User user=userRepository.findUserByEmail(email);
         if(user==null){
-            user=new User(email,first_name,last_name,phonenumber);
+            user=new User(email,first_name,last_name);
             user=userRepository.save(user);
             //Ogni volta che viene creato un utente, creo il carrello associato
             Cart cart=new Cart();
