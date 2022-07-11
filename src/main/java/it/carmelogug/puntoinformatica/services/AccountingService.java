@@ -4,6 +4,7 @@ import it.carmelogug.puntoinformatica.entities.User;
 import it.carmelogug.puntoinformatica.entities.purchasing.Cart;
 import it.carmelogug.puntoinformatica.repositories.CartRepository;
 import it.carmelogug.puntoinformatica.repositories.UserRepository;
+import it.carmelogug.puntoinformatica.support.authentication.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -36,6 +37,9 @@ public class AccountingService {
         }
         return user;
     }
+
+
+
 
 
 

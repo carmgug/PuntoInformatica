@@ -33,7 +33,7 @@ public class AccountingController {
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @GetMapping("/logged")
     public ResponseEntity checkLogged() {
-        System.out.println("sono loggato");
+
 
         String email=Utils.getEmail();
         String[] name=Utils.getName();
