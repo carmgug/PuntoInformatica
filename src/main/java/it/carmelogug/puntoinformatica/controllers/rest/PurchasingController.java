@@ -32,9 +32,6 @@ public class PurchasingController {
     private PurchasingService purchasingService;
 
 
-    /*
-        Metodi per la gestione degli acquisti.
-     */
 
     @PreAuthorize("hasAuthority('puntoinformatica-admin')")
     @PostMapping("/cart")
@@ -47,9 +44,7 @@ public class PurchasingController {
         }
     }//createCart
 
-    /*
-        Metodi utilizzati dal frontEnd
-     */
+
     @PreAuthorize("hasAuthority('puntoinformatica-user')")
     @PutMapping("/cart/my_cart/addStoredProduct")
     public ResponseEntity addStoredProductToCart(@RequestBody StoredProduct storedProduct,

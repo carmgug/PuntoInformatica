@@ -24,12 +24,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter { //este
         http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers("/check/**").permitAll()
-                .antMatchers("/users/**").permitAll()
-                .antMatchers("/products/**").permitAll()
-                .antMatchers("/purchasing/**").permitAll()
-                .antMatchers("/stores/**").permitAll()
                 .anyRequest().authenticated().and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(new JwtAuthenticationConverter());
     }
+
 
     @Bean
     public CorsFilter corsFilter() {
